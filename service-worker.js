@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyber-homekeeper-v13";
+const CACHE_NAME = "cyber-homekeeper-v18";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,10 +10,7 @@ const APP_SHELL = [
   "./assets/apple-touch-icon.png",
   "./assets/icon-180.png",
   "./assets/icon-192.png",
-  "./assets/icon-512.png",
-  "./assets/cheese-clock.png",
-  "./assets/corgi-fridge-closed.jpg",
-  "./assets/corgi-fridge-open.jpg"
+  "./assets/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {

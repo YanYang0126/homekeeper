@@ -576,6 +576,12 @@ function toggleFurnitureDoor(button) {
   if (button.dataset.furniture === "fridge") {
     button.setAttribute("aria-label", isOpen ? "关闭我的冰箱" : "打开我的冰箱");
   }
+  if (button.dataset.furniture === "closet") {
+    button.setAttribute("aria-label", isOpen ? "关闭我的衣柜" : "打开我的衣柜");
+  }
+  if (button.dataset.furniture === "cabinet") {
+    button.setAttribute("aria-label", isOpen ? "关闭重要物品柜" : "打开重要物品柜");
+  }
 }
 
 function renderEmpty(container, title) {

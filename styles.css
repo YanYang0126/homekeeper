@@ -2938,101 +2938,141 @@ select:focus {
   }
 }
 
+.reminder-scene .scene-visual {
+  min-height: min(92vw, 460px);
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+
 .cheese-clock-button {
-  width: min(86vw, 420px);
-  height: min(86vw, 420px);
-  transform: perspective(900px) rotateX(1.2deg);
-  animation: clockFloat 5.2s ease-in-out infinite;
+  width: min(86vw, 430px);
+  height: min(86vw, 430px);
+  max-width: 430px;
+  max-height: 430px;
+  border: 0;
+  padding: 0;
+  border-radius: 34px;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  cursor: pointer;
+  transform: none;
+  animation: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    filter 0.22s ease,
+    transform 0.22s ease;
 }
 
 .cheese-clock-button:hover,
 .cheese-clock-button:focus-visible {
-  transform: perspective(900px) rotateX(1.2deg) translateY(-4px);
+  outline: 0;
+  filter: saturate(1.04) brightness(1.01);
+  transform: translateY(-3px);
 }
 
 .cheese-clock-button::before,
 .cheese-clock-button::after,
 .cheese-clock-button.door-open::before,
 .cheese-clock-button.door-open::after {
-  content: "";
-  display: none;
+  content: "" !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
 }
 
 .cheese-clock-button .cheese-clock-wrap,
 .cheese-clock-button.door-open .cheese-clock-wrap {
   position: absolute;
   inset: 0 !important;
-  left: 0 !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
   z-index: 2;
   display: block;
   width: 100% !important;
   height: 100% !important;
+  border-radius: 34px;
+  overflow: visible;
   transform: none !important;
+}
+
+.cheese-clock-button .cheese-clock-wrap::before {
+  content: "";
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 4%;
+  z-index: 0;
+  height: 9%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(92, 51, 24, 0.2), transparent 68%);
+  filter: blur(7px);
+  pointer-events: none;
 }
 
 .cheese-clock-image {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 28px;
+  border-radius: 34px;
   object-fit: contain;
+  background: transparent;
+  transform: none;
   filter:
-    drop-shadow(0 24px 28px rgba(91, 58, 103, 0.16))
-    drop-shadow(0 8px 14px rgba(112, 68, 24, 0.12));
+    drop-shadow(0 26px 30px rgba(91, 58, 103, 0.16))
+    drop-shadow(0 10px 16px rgba(112, 68, 24, 0.13));
 }
 
 .cheese-clock-button .cheese-clock-second {
-  left: 45.6% !important;
-  top: 41.6% !important;
-  right: auto;
-  bottom: auto;
-  z-index: 5;
+  left: 47.7% !important;
+  top: 40.1% !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 4;
   width: 2px !important;
-  height: 18% !important;
+  height: 19% !important;
   border-radius: 999px;
-  background: linear-gradient(180deg, #4c2f1f, #8b5a37);
-  box-shadow: 0 1px 4px rgba(66, 39, 22, 0.2);
+  background: linear-gradient(180deg, #4b2b1b, #9a6135);
+  box-shadow: 0 1px 4px rgba(66, 39, 22, 0.26);
   transform-origin: 50% 100%;
   animation: cheeseSecondRun 60s steps(60) infinite;
+  pointer-events: none;
 }
 
 .cheese-clock-button .cheese-clock-center {
-  left: calc(45.6% - 5px) !important;
-  top: calc(59.6% - 5px) !important;
-  right: auto;
-  bottom: auto;
-  z-index: 6;
+  left: calc(47.7% - 5px) !important;
+  top: calc(59.1% - 5px) !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 5;
   width: 10px !important;
   height: 10px !important;
   border-radius: 999px;
   background: radial-gradient(circle at 35% 28%, #a87342, #5a351f 68%);
   box-shadow: 0 2px 5px rgba(52, 31, 18, 0.24);
-  transform: none;
+  transform: none !important;
+  pointer-events: none;
 }
 
-.cheese-clock-button.door-open .cheese-clock-second,
-.cheese-clock-button.door-open .cheese-clock-center {
+.cheese-clock-button.door-open .cheese-clock-second {
   transform-origin: 50% 100%;
 }
 
 @keyframes cheeseSecondRun {
   from {
-    transform: rotate(190deg);
+    transform: rotate(198deg);
   }
 
   to {
-    transform: rotate(550deg);
+    transform: rotate(558deg);
   }
 }
 
 @media (max-width: 760px) {
   .reminder-scene .scene-visual {
-    min-height: min(92vw, 380px);
+    min-height: min(94vw, 390px);
     place-items: center;
   }
 
@@ -3042,7 +3082,7 @@ select:focus {
   }
 
   .cheese-clock-image {
-    border-radius: 22px;
+    border-radius: 28px;
   }
 }
 
@@ -3145,23 +3185,23 @@ select:focus {
 
 .photo-fridge-button .fridge-photo-closed {
   opacity: 1;
-  transform: translateX(-50%) scale(1.15) rotateY(0deg);
+  transform: translateX(-50%) scale(1.04) rotateY(0deg);
 }
 
 .photo-fridge-button .fridge-photo-open {
   opacity: 0;
-  transform: translateX(-50%) scale(1.1) rotateY(-7deg) translateY(10px);
+  transform: translateX(-50%) scale(1) rotateY(-7deg) translateY(10px);
 }
 
 .photo-fridge-button.door-open .fridge-photo-closed {
   opacity: 0;
-  transform: translateX(-50%) scale(1.1) rotateY(7deg) translateY(12px);
+  transform: translateX(-50%) scale(1) rotateY(7deg) translateY(12px);
   filter: blur(1px) saturate(0.96);
 }
 
 .photo-fridge-button.door-open .fridge-photo-open {
   opacity: 1;
-  transform: translateX(-50%) scale(1.15) rotateY(0deg) translateY(0);
+  transform: translateX(-50%) scale(1.04) rotateY(0deg) translateY(0);
 }
 
 .photo-fridge-button .fridge-state-badge {
@@ -3234,5 +3274,558 @@ select:focus {
     bottom: 8px;
     padding: 7px 14px;
     font-size: 0.86rem;
+  }
+}
+
+.photo-closet-button.closet-visual.furniture-piece {
+  width: min(78vw, 340px);
+  height: min(122vw, 520px);
+  max-height: 520px;
+  border: 0;
+  border-radius: 30px;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  transform: perspective(1100px) rotateX(1deg);
+  animation: none;
+  transition:
+    transform 260ms ease,
+    filter 260ms ease;
+}
+
+.photo-closet-button.closet-visual.furniture-piece:hover,
+.photo-closet-button.closet-visual.furniture-piece:focus-visible {
+  outline: 0;
+  filter: saturate(1.02) brightness(1.01);
+  transform: perspective(1100px) rotateX(1deg) translateY(-4px);
+}
+
+.photo-closet-button.closet-visual.furniture-piece::before,
+.photo-closet-button.closet-visual.furniture-piece::after,
+.photo-closet-button.closet-visual.furniture-piece.door-open::before,
+.photo-closet-button.closet-visual.furniture-piece.door-open::after {
+  content: "";
+  display: none;
+}
+
+.photo-closet-button .closet-photo-stage {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 20% 12%, rgba(255, 235, 210, 0.72), transparent 22%),
+    linear-gradient(180deg, rgba(255, 245, 230, 0.88), rgba(255, 255, 255, 0.72));
+  box-shadow:
+    0 30px 44px rgba(106, 72, 42, 0.16),
+    0 10px 18px rgba(68, 44, 27, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.76);
+  transform-style: preserve-3d;
+}
+
+.photo-closet-button .closet-photo-stage::after {
+  content: "";
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 4%;
+  z-index: 1;
+  height: 14%;
+  border-radius: 50%;
+  background: rgba(92, 62, 34, 0.14);
+  filter: blur(12px);
+  transform: translateY(30%);
+  pointer-events: none;
+}
+
+.photo-closet-button .closet-photo {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transform-origin: 50% 0;
+  filter:
+    drop-shadow(0 22px 22px rgba(91, 58, 31, 0.15))
+    saturate(1.02);
+  transition:
+    opacity 520ms ease,
+    transform 760ms cubic-bezier(0.2, 0.78, 0.18, 1),
+    filter 520ms ease;
+  will-change: opacity, transform;
+}
+
+.photo-closet-button .closet-photo-closed {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.02) rotateY(0deg);
+}
+
+.photo-closet-button .closet-photo-open {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.98) rotateY(-7deg) translateY(10px);
+}
+
+.photo-closet-button.door-open .closet-photo-closed {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.98) rotateY(7deg) translateY(12px);
+  filter: blur(1px) saturate(0.96);
+}
+
+.photo-closet-button.door-open .closet-photo-open {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.02) rotateY(0deg) translateY(0);
+}
+
+.photo-closet-button .closet-state-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 5;
+  min-width: 108px;
+  border-radius: 999px;
+  padding: 8px 16px;
+  color: #72513c;
+  background: rgba(255, 248, 238, 0.94);
+  box-shadow:
+    0 12px 24px rgba(95, 61, 34, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+  font-weight: 900;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.photo-closet-button .closet-state-badge b {
+  display: block;
+  font: inherit;
+  white-space: nowrap;
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.photo-closet-button .closet-state-badge .badge-open {
+  position: absolute;
+  inset: 8px 16px;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.photo-closet-button.door-open .badge-closed {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.photo-closet-button.door-open .badge-open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.closet-scene .scene-visual::after {
+  content: "";
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .closet-scene .scene-visual {
+    min-height: min(124vw, 520px);
+    place-items: center;
+  }
+
+  .photo-closet-button.closet-visual.furniture-piece {
+    width: min(78vw, 320px);
+    height: min(122vw, 480px);
+  }
+
+  .photo-closet-button .closet-photo-stage {
+    border-radius: 24px;
+  }
+
+.photo-closet-button .closet-state-badge {
+    bottom: 8px;
+    padding: 7px 14px;
+    font-size: 0.86rem;
+  }
+}
+
+.fridge-scene,
+.closet-scene {
+  width: 100%;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.fridge-scene::before,
+.fridge-scene::after,
+.closet-scene::before,
+.closet-scene::after {
+  content: "";
+  display: none;
+}
+
+.fridge-scene .scene-visual,
+.closet-scene .scene-visual {
+  width: min(100vw, 520px);
+  min-height: min(154vw, 650px);
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.photo-fridge-button.fridge-visual.furniture-piece,
+.photo-closet-button.closet-visual.furniture-piece {
+  width: min(96vw, 430px);
+  height: min(148vw, 640px);
+  max-height: 640px;
+  border-radius: 0;
+}
+
+.photo-fridge-button .fridge-photo-stage,
+.photo-closet-button .closet-photo-stage {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.photo-fridge-button .fridge-photo-stage::before,
+.photo-fridge-button .fridge-photo-stage::after,
+.photo-closet-button .closet-photo-stage::after {
+  content: "";
+  display: none;
+}
+
+.photo-fridge-button .fridge-photo,
+.photo-closet-button .closet-photo {
+  border-radius: 0;
+  object-fit: cover;
+  filter: drop-shadow(0 24px 26px rgba(92, 55, 31, 0.15)) saturate(1.02);
+}
+
+.photo-fridge-button .fridge-photo-closed {
+  transform: translateX(-50%) scale(1.18);
+}
+
+.photo-fridge-button .fridge-photo-open {
+  transform: translateX(-50%) scale(1.1) translateY(8px);
+}
+
+.photo-fridge-button.door-open .fridge-photo-open {
+  transform: translateX(-50%) scale(1.12) translateY(0);
+}
+
+.photo-closet-button .closet-photo-closed {
+  transform: translateX(-50%) scale(1.13);
+}
+
+.photo-closet-button .closet-photo-open {
+  transform: translateX(-50%) scale(1.08) translateY(8px);
+}
+
+.photo-closet-button.door-open .closet-photo-open {
+  transform: translateX(-50%) scale(1.1) translateY(0);
+}
+
+.fridge-scene .scene-copy,
+.closet-scene .scene-copy {
+  max-width: min(92vw, 520px);
+  margin: 10px auto 0;
+}
+
+@media (max-width: 760px) {
+  .fridge-scene,
+  .closet-scene {
+    width: calc(100vw - 16px);
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .fridge-scene .scene-visual,
+  .closet-scene .scene-visual {
+    width: calc(100vw - 16px);
+    min-height: min(150vw, 620px);
+  }
+
+  .photo-fridge-button.fridge-visual.furniture-piece,
+  .photo-closet-button.closet-visual.furniture-piece {
+    width: calc(100vw - 20px);
+    height: min(146vw, 610px);
+  }
+
+  .fridge-scene .scene-copy,
+  .closet-scene .scene-copy {
+    max-width: calc(100vw - 40px);
+  }
+}
+
+.reminder-scene {
+  width: 100%;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.reminder-scene::before,
+.reminder-scene::after {
+  content: "";
+  display: none;
+}
+
+.reminder-scene .scene-visual {
+  width: min(100vw, 540px);
+  min-height: min(104vw, 540px);
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.cheese-clock-button {
+  width: min(96vw, 500px);
+  height: min(96vw, 500px);
+  max-width: 500px;
+  max-height: 500px;
+  border-radius: 0;
+}
+
+.cheese-clock-button .cheese-clock-wrap {
+  border-radius: 0;
+}
+
+.cheese-clock-button .cheese-clock-wrap::before {
+  content: "";
+  display: none;
+}
+
+.cheese-clock-image {
+  border-radius: 0;
+  filter: drop-shadow(0 22px 24px rgba(91, 58, 103, 0.12));
+}
+
+.reminder-scene .scene-copy {
+  max-width: min(92vw, 540px);
+  margin: 10px auto 0;
+}
+
+.cabinet-scene {
+  width: 100%;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.cabinet-scene::before,
+.cabinet-scene::after {
+  content: "";
+  display: none;
+}
+
+.cabinet-scene .scene-visual {
+  width: min(100vw, 520px);
+  min-height: min(154vw, 650px);
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.photo-cabinet-button.cabinet-visual.furniture-piece {
+  width: min(96vw, 430px);
+  height: min(148vw, 640px);
+  max-height: 640px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  transform: perspective(1100px) rotateX(1deg);
+  animation: none;
+  transition:
+    transform 260ms ease,
+    filter 260ms ease;
+}
+
+.photo-cabinet-button.cabinet-visual.furniture-piece:hover,
+.photo-cabinet-button.cabinet-visual.furniture-piece:focus-visible {
+  outline: 0;
+  filter: saturate(1.02) brightness(1.01);
+  transform: perspective(1100px) rotateX(1deg) translateY(-4px);
+}
+
+.photo-cabinet-button.cabinet-visual.furniture-piece::before,
+.photo-cabinet-button.cabinet-visual.furniture-piece::after,
+.photo-cabinet-button.cabinet-visual.furniture-piece.door-open::before,
+.photo-cabinet-button.cabinet-visual.furniture-piece.door-open::after {
+  content: "";
+  display: none;
+}
+
+.photo-cabinet-button .cabinet-photo-stage {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform-style: preserve-3d;
+}
+
+.photo-cabinet-button .cabinet-photo-stage::before,
+.photo-cabinet-button .cabinet-photo-stage::after {
+  content: "";
+  display: none;
+}
+
+.photo-cabinet-button .cabinet-photo {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transform-origin: 50% 0;
+  filter: drop-shadow(0 24px 26px rgba(100, 55, 69, 0.14)) saturate(1.02);
+  transition:
+    opacity 520ms ease,
+    transform 760ms cubic-bezier(0.2, 0.78, 0.18, 1),
+    filter 520ms ease;
+  will-change: opacity, transform;
+}
+
+.photo-cabinet-button .cabinet-photo-closed {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.13);
+}
+
+.photo-cabinet-button .cabinet-photo-open {
+  opacity: 0;
+  transform: translateX(-50%) scale(1.08) translateY(8px);
+}
+
+.photo-cabinet-button.door-open .cabinet-photo-closed {
+  opacity: 0;
+  transform: translateX(-50%) scale(1.02) rotateY(5deg) translateY(12px);
+  filter: blur(1px) saturate(0.96);
+}
+
+.photo-cabinet-button.door-open .cabinet-photo-open {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.1) translateY(0);
+}
+
+.photo-cabinet-button .cabinet-state-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 5;
+  min-width: 108px;
+  border-radius: 999px;
+  padding: 8px 16px;
+  color: #8a4d5e;
+  background: rgba(255, 248, 250, 0.94);
+  box-shadow:
+    0 12px 24px rgba(105, 52, 68, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+  font-weight: 900;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.photo-cabinet-button .cabinet-state-badge b {
+  display: block;
+  font: inherit;
+  white-space: nowrap;
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.photo-cabinet-button .cabinet-state-badge .badge-open {
+  position: absolute;
+  inset: 8px 16px;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.photo-cabinet-button.door-open .badge-closed {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.photo-cabinet-button.door-open .badge-open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cabinet-scene .scene-visual::after {
+  content: "";
+  display: none;
+}
+
+.cabinet-scene .scene-copy {
+  max-width: min(92vw, 520px);
+  margin: 10px auto 0;
+}
+
+@media (max-width: 760px) {
+  .reminder-scene,
+  .cabinet-scene {
+    width: calc(100vw - 16px);
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .reminder-scene .scene-visual {
+    width: calc(100vw - 16px);
+    min-height: min(104vw, 430px);
+  }
+
+  .cheese-clock-button {
+    width: calc(100vw - 20px);
+    height: calc(100vw - 20px);
+  }
+
+  .cabinet-scene .scene-visual {
+    width: calc(100vw - 16px);
+    min-height: min(150vw, 620px);
+  }
+
+  .photo-cabinet-button.cabinet-visual.furniture-piece {
+    width: calc(100vw - 20px);
+    height: min(146vw, 610px);
+  }
+
+  .photo-cabinet-button .cabinet-state-badge {
+    bottom: 8px;
+    padding: 7px 14px;
+    font-size: 0.86rem;
+  }
+
+  .reminder-scene .scene-copy,
+  .cabinet-scene .scene-copy {
+    max-width: calc(100vw - 40px);
   }
 }
