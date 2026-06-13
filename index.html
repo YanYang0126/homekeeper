@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#8b5cf6" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="赛博小管家" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>赛博小管家</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">本地保存 · 不依赖外网</p>
+        <h1>赛博小管家</h1>
+      </div>
+      <div class="header-actions">
+        <button class="ghost-button" id="notifyButton" type="button">开启提醒</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="hero-panel" aria-label="赛博小管家欢迎区">
+        <span class="music-note note-one" aria-hidden="true">𝄞</span>
+        <span class="music-note note-two" aria-hidden="true">♩</span>
+        <span class="music-note note-three" aria-hidden="true">♬</span>
+        <div class="hero-copy">
+          <h2>把家里的小事，整理成一段优雅的乐章。</h2>
+          <p>
+            冰箱、衣服、日期、文件位置和补货清单都放在同一个本地网页里。
+          </p>
+        </div>
+        <div class="hero-art">
+          <img
+            class="qisi-corner"
+            src="qisi-cutout.png"
+            data-fallback-src="assets/qisi-cutout.png"
+            alt="起司趴在页面右上角"
+            onerror="if (this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; this.dataset.fallbackSrc = ''; } else { this.classList.add('image-missing'); var fallback = document.querySelector('.qisi-fallback'); if (fallback) fallback.classList.add('show'); }"
+          />
+          <div class="qisi-fallback" aria-hidden="true">起司</div>
+          <div class="qisi-label">起司大王</div>
+        </div>
+      </section>
+
+      <section class="alert-panel hidden" id="alertPanel" aria-live="polite"></section>
+
+      <div class="toolbar">
+        <label class="search-box">
+          <span>搜索</span>
+          <input id="searchInput" type="search" placeholder="搜食物、衣服、日期、文件、位置、补货" />
+        </label>
+      </div>
+
+      <nav class="tabs" aria-label="功能板块">
+        <button class="tab-button active" type="button" data-tab="fridge">
+          <span class="tab-icon" aria-hidden="true">🧊</span>
+          <span class="tab-label">冰箱</span>
+        </button>
+        <button class="tab-button" type="button" data-tab="clothes">
+          <span class="tab-icon" aria-hidden="true">👗</span>
+          <span class="tab-label">衣服</span>
+        </button>
+        <button class="tab-button" type="button" data-tab="dates">
+          <span class="tab-icon" aria-hidden="true">🕰️</span>
+          <span class="tab-label">时钟</span>
+        </button>
+        <button class="tab-button" type="button" data-tab="storage">
+          <span class="tab-icon" aria-hidden="true">📁</span>
+          <span class="tab-label">文件</span>
+        </button>
+        <button class="tab-button" type="button" data-tab="restock">
+          <span class="tab-icon" aria-hidden="true">🛒</span>
+          <span class="tab-label">补货</span>
+        </button>
+      </nav>
+
+      <section class="tab-section active" id="tab-fridge">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">食品保质期</p>
+            <h2>冰箱里有什么</h2>
+          </div>
+          <button class="ghost-button small" id="clearFridgeForm" type="button">清空表单</button>
+        </div>
+        <div class="scene-card fridge-scene" aria-label="冰箱收纳场景">
+          <div class="scene-visual">
+            <button class="appliance fridge-visual furniture-piece photo-fridge-button" type="button" data-furniture="fridge" aria-label="打开我的冰箱" aria-pressed="false">
+              <div class="fridge-photo-stage" aria-hidden="true">
+                <img class="fridge-photo fridge-photo-closed" src="assets/corgi-fridge-closed.jpg" alt="" />
+                <img class="fridge-photo fridge-photo-open" src="assets/corgi-fridge-open.jpg" alt="" />
+                <div class="fridge-state-badge">
+                  <b class="badge-closed">关闭状态</b>
+                  <b class="badge-open">打开状态</b>
+                </div>
+              </div>
+            </button>
+          </div>
+          <div class="scene-copy">
+            <strong>我的冰箱</strong>
+            <p>这里显示你放进冰箱的东西。</p>
+            <div class="scene-items" id="fridgeSceneItems"></div>
+          </div>
+        </div>
+
+        <div class="work-grid">
+          <form class="editor-panel" id="fridgeForm">
+            <input name="id" type="hidden" />
+            <label>
+              <span>物品名称</span>
+              <input name="name" required placeholder="例如：鸡蛋、牛奶、青菜" />
+            </label>
+            <label>
+              <span>数量</span>
+              <input name="amount" placeholder="例如：6 个、1 瓶" />
+            </label>
+            <label>
+              <span>放置位置</span>
+              <input name="place" placeholder="例如：冷藏上层、冷冻抽屉" />
+            </label>
+            <div class="two-fields">
+              <label>
+                <span>生产日期</span>
+                <input name="productionDate" type="date" required />
+              </label>
+              <label>
+                <span>保质期（天）</span>
+                <input name="shelfLifeDays" type="number" min="1" step="1" placeholder="例如：7" required />
+              </label>
+            </div>
+            <label>
+              <span>备注</span>
+              <textarea name="note" rows="3" placeholder="开封日期、谁买的、怎么吃"></textarea>
+            </label>
+            <button class="primary-button full" type="submit">保存到冰箱</button>
+          </form>
+
+          <div>
+            <div class="list-head">
+              <h3>冰箱清单</h3>
+              <span id="fridgeListMeta">0 项</span>
+            </div>
+            <div class="item-grid" id="fridgeList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section" id="tab-clothes">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">拍照归档</p>
+            <h2>家里有哪些衣服</h2>
+          </div>
+          <div class="heading-actions">
+            <button class="ghost-button small" id="exportClothesImageButton" type="button">保存图片清单</button>
+            <button class="ghost-button small" id="clearClothesForm" type="button">清空表单</button>
+          </div>
+        </div>
+        <div class="scene-card closet-scene" aria-label="衣柜收纳场景">
+          <div class="scene-visual">
+            <button class="appliance closet-visual furniture-piece" type="button" data-furniture="closet" aria-label="打开我的衣柜">
+              <span></span>
+              <span></span>
+              <i></i>
+            </button>
+          </div>
+          <div class="scene-copy">
+            <strong>我的衣柜</strong>
+            <p>衣服照片和收纳位置都放在这里。</p>
+            <div class="scene-items" id="clothesSceneItems"></div>
+          </div>
+        </div>
+
+        <div class="work-grid">
+          <form class="editor-panel" id="clothesForm">
+            <input name="id" type="hidden" />
+            <label>
+              <span>衣服名称</span>
+              <input name="name" required placeholder="例如：黑色羽绒服、白衬衫" />
+            </label>
+            <div class="two-fields">
+              <label>
+                <span>类别</span>
+                <select name="type">
+                  <option>上衣</option>
+                  <option>裤子</option>
+                  <option>裙子</option>
+                  <option>外套</option>
+                  <option>鞋包</option>
+                  <option>配饰</option>
+                  <option>其他</option>
+                </select>
+              </label>
+              <label>
+                <span>季节</span>
+                <select name="season">
+                  <option>四季</option>
+                  <option>春秋</option>
+                  <option>夏季</option>
+                  <option>冬季</option>
+                </select>
+              </label>
+            </div>
+            <div class="two-fields">
+              <label>
+                <span>颜色</span>
+                <input name="color" placeholder="例如：黑色、米白" />
+              </label>
+              <label>
+                <span>收纳位置</span>
+                <input name="place" placeholder="例如：主卧衣柜左侧" />
+              </label>
+            </div>
+            <label>
+              <span>照片</span>
+              <div class="photo-picker">
+                <button class="photo-choice" type="button" data-photo-trigger="clothesPhotoInput" data-photo-mode="camera">拍照</button>
+                <button class="photo-choice" type="button" data-photo-trigger="clothesPhotoInput" data-photo-mode="album">从本地照片选择</button>
+                <input id="clothesPhotoInput" class="photo-file-input" name="photo" type="file" accept="image/*" />
+              </div>
+            </label>
+            <div class="photo-preview hidden" id="clothesPhotoPreview"></div>
+            <label>
+              <span>备注</span>
+              <textarea name="note" rows="3" placeholder="尺码、搭配、是否需要清洗"></textarea>
+            </label>
+            <button class="primary-button full" type="submit">保存衣服</button>
+          </form>
+
+          <div>
+            <div class="list-head">
+              <h3>衣服相册</h3>
+              <span id="clothesListMeta">0 件</span>
+            </div>
+            <div class="photo-grid" id="clothesList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section" id="tab-dates">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">提前一天</p>
+            <h2>重要的日期</h2>
+          </div>
+          <div class="heading-actions">
+            <button class="ghost-button small" id="exportCalendarButton" type="button">导出日历提醒</button>
+            <button class="ghost-button small" id="clearDateForm" type="button">清空表单</button>
+          </div>
+        </div>
+
+        <div class="notice-line">
+          网页打开时会显示临近提醒；下载日历文件导入手机日历后，可以在目标日期前一天收到系统提醒。
+        </div>
+        <div class="scene-card reminder-scene" aria-label="时钟提醒场景">
+          <div class="scene-visual">
+            <button class="appliance reminder-visual furniture-piece clock-3d-button cheese-clock-button" type="button" data-furniture="clock" aria-label="打开提醒时钟">
+              <span class="cheese-clock-wrap" aria-hidden="true">
+                <img class="cheese-clock-image" src="assets/cheese-clock.png" alt="" />
+                <span class="cheese-clock-second"></span>
+                <span class="cheese-clock-center"></span>
+              </span>
+            </button>
+          </div>
+          <div class="scene-copy">
+            <strong>时钟提醒</strong>
+            <p>重要日期会在这里排好队。</p>
+            <div class="scene-items" id="dateSceneItems"></div>
+          </div>
+        </div>
+
+        <div class="work-grid">
+          <form class="editor-panel" id="dateForm">
+            <input name="id" type="hidden" />
+            <label>
+              <span>日期名称</span>
+              <input name="name" required placeholder="例如：体检、还款、纪念日" />
+            </label>
+            <div class="two-fields">
+              <label>
+                <span>日期</span>
+                <input name="date" type="date" required />
+              </label>
+              <label>
+                <span>类型</span>
+                <select name="type">
+                  <option>家庭</option>
+                  <option>健康</option>
+                  <option>缴费</option>
+                  <option>证件</option>
+                  <option>纪念日</option>
+                  <option>其他</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              <span>备注</span>
+              <textarea name="note" rows="3" placeholder="需要准备什么、联系人、地址"></textarea>
+            </label>
+            <button class="primary-button full" type="submit">保存日期</button>
+          </form>
+
+          <div>
+            <div class="list-head">
+              <h3>日期清单</h3>
+              <span id="dateListMeta">0 个</span>
+            </div>
+            <div class="item-grid" id="dateList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section" id="tab-storage">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">找得到</p>
+            <h2>重要文件和物品放在哪里</h2>
+          </div>
+          <button class="ghost-button small" id="clearStorageForm" type="button">清空表单</button>
+        </div>
+        <div class="scene-card cabinet-scene" aria-label="文件物品柜场景">
+          <div class="scene-visual">
+            <button class="appliance cabinet-visual furniture-piece" type="button" data-furniture="cabinet" aria-label="打开重要物品柜">
+              <span></span>
+              <span></span>
+              <i></i>
+            </button>
+          </div>
+          <div class="scene-copy">
+            <strong>重要物品柜</strong>
+            <p>文件、证件、钥匙和贵重物品的位置。</p>
+            <div class="scene-items" id="storageSceneItems"></div>
+          </div>
+        </div>
+
+        <div class="work-grid">
+          <form class="editor-panel" id="storageForm">
+            <input name="id" type="hidden" />
+            <label>
+              <span>名称</span>
+              <input name="name" required placeholder="例如：房产证、备用钥匙、保修卡" />
+            </label>
+            <div class="two-fields">
+              <label>
+                <span>类别</span>
+                <select name="type">
+                  <option>证件</option>
+                  <option>合同</option>
+                  <option>票据</option>
+                  <option>钥匙</option>
+                  <option>电子设备</option>
+                  <option>贵重物品</option>
+                  <option>其他</option>
+                </select>
+              </label>
+              <label>
+                <span>负责人</span>
+                <input name="owner" placeholder="例如：妈妈、自己" />
+              </label>
+            </div>
+            <label>
+              <span>所在房间</span>
+              <input name="room" placeholder="例如：书房、主卧、客厅" />
+            </label>
+            <label>
+              <span>具体位置</span>
+              <input name="spot" required placeholder="例如：书柜第二层蓝色文件袋" />
+            </label>
+            <label>
+              <span>位置照片</span>
+              <div class="photo-picker">
+                <button class="photo-choice" type="button" data-photo-trigger="storagePhotoInput" data-photo-mode="camera">拍位置</button>
+                <button class="photo-choice" type="button" data-photo-trigger="storagePhotoInput" data-photo-mode="album">选本地照片</button>
+                <input id="storagePhotoInput" class="photo-file-input" name="photo" type="file" accept="image/*" />
+              </div>
+            </label>
+            <div class="photo-preview hidden" id="storagePhotoPreview"></div>
+            <label>
+              <span>备注</span>
+              <textarea name="note" rows="3" placeholder="编号、密码提示、注意事项"></textarea>
+            </label>
+            <button class="primary-button full" type="submit">保存位置</button>
+          </form>
+
+          <div>
+            <div class="list-head">
+              <h3>位置清单</h3>
+              <span id="storageListMeta">0 项</span>
+            </div>
+            <div class="item-grid" id="storageList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section" id="tab-restock">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">日用品库存</p>
+            <h2>补货清单</h2>
+          </div>
+          <button class="ghost-button small" id="clearRestockForm" type="button">清空表单</button>
+        </div>
+
+        <div class="quick-items" aria-label="常用补货项">
+          <button type="button" data-restock-preset="猫砂" data-restock-category="猫咪用品">猫砂</button>
+          <button type="button" data-restock-preset="纸巾" data-restock-category="纸品">纸巾</button>
+          <button type="button" data-restock-preset="洗衣液" data-restock-category="日用清洁">洗衣液</button>
+          <button type="button" data-restock-preset="卫生巾" data-restock-category="女性护理">卫生巾</button>
+          <button type="button" data-restock-preset="厕纸" data-restock-category="纸品">厕纸</button>
+          <button type="button" data-restock-preset="一次性手套" data-restock-category="厨房耗材">一次性手套</button>
+          <button type="button" data-restock-preset="保鲜膜" data-restock-category="厨房耗材">保鲜膜</button>
+        </div>
+        <div class="scene-card pantry-scene" aria-label="补货柜场景">
+          <div class="scene-visual">
+            <button class="appliance pantry-visual furniture-piece" type="button" data-furniture="pantry" aria-label="打开日用品柜">
+              <span></span>
+              <span></span>
+              <i></i>
+            </button>
+          </div>
+          <div class="scene-copy">
+            <strong>日用品柜</strong>
+            <p>快用完的东西都在这里等补货。</p>
+            <div class="scene-items" id="restockSceneItems"></div>
+          </div>
+        </div>
+
+        <div class="work-grid">
+          <form class="editor-panel" id="restockForm">
+            <input name="id" type="hidden" />
+            <label>
+              <span>物品名称</span>
+              <input name="name" required placeholder="例如：猫砂、纸巾、洗衣液" />
+            </label>
+            <div class="two-fields">
+              <label>
+                <span>类别</span>
+                <select name="category">
+                  <option>猫咪用品</option>
+                  <option>纸品</option>
+                  <option>日用清洁</option>
+                  <option>女性护理</option>
+                  <option>厨房耗材</option>
+                  <option>其他</option>
+                </select>
+              </label>
+              <label>
+                <span>状态</span>
+                <select name="status">
+                  <option>需要补货</option>
+                  <option>库存偏低</option>
+                  <option>已备足</option>
+                  <option>下次再看</option>
+                </select>
+              </label>
+            </div>
+            <div class="two-fields">
+              <label>
+                <span>当前库存</span>
+                <input name="stock" placeholder="例如：半袋、2 卷、1 瓶" />
+              </label>
+              <label>
+                <span>常放位置</span>
+                <input name="place" placeholder="例如：卫生间柜子、阳台" />
+              </label>
+            </div>
+            <label>
+              <span>常买品牌/渠道</span>
+              <input name="source" placeholder="例如：某品牌、超市、网购链接提示" />
+            </label>
+            <label>
+              <span>备注</span>
+              <textarea name="note" rows="3" placeholder="规格、敏感偏好、下次买几件"></textarea>
+            </label>
+            <button class="primary-button full" type="submit">保存补货项</button>
+          </form>
+
+          <div>
+            <div class="list-head">
+              <h3>待补和库存</h3>
+              <span id="restockListMeta">0 项</span>
+            </div>
+            <div class="item-grid" id="restockList"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="image-dialog" id="imageDialog">
+      <button class="dialog-close" id="closeImageDialog" type="button" aria-label="关闭">×</button>
+      <img id="dialogImage" alt="照片预览" />
+      <p id="dialogCaption"></p>
+    </dialog>
+
+    <template id="emptyTemplate">
+      <div class="empty-state">
+        <strong>还没有记录</strong>
+        <span>从左侧表单添加第一条。</span>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
