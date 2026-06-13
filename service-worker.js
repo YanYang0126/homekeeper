@@ -1,16 +1,20 @@
-const CACHE_NAME = "cyber-homekeeper-v18";
+const CACHE_NAME = "cyber-homekeeper-v26";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
+  "./mobile-polish.css",
   "./app.js",
   "./manifest.webmanifest",
   "./qisi-cutout.png",
-  "./assets/qisi-cutout.png",
   "./assets/apple-touch-icon.png",
   "./assets/icon-180.png",
   "./assets/icon-192.png",
-  "./assets/icon-512.png"
+  "./assets/icon-512.png",
+  "./assets/main/fridge-closed.jpg",
+  "./assets/main/fridge-open.jpg",
+  "./assets/main/closet-closed.jpg",
+  "./assets/main/closet-open.jpg"
 ];
 
 self.addEventListener("install", (event) => {
@@ -25,6 +29,11 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
+      .then(() => {
+        self.clients.matchAll({ type: "window" }).then((clients) => {
+          clients.forEach((client) => client.postMessage({ type: "sw-updated" }));
+        });
+      })
   );
 });
 

@@ -51,6 +51,18 @@ function registerServiceWorker() {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});
   });
+
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data?.type === "sw-updated") {
+      const refresh = document.createElement("div");
+      refresh.style.cssText =
+        "position:fixed;bottom:80px;left:50%;z-index:999;transform:translateX(-50%);padding:10px 20px;border-radius:8px;background:#8b5cf6;color:#fff;font-weight:700;box-shadow:0 12px 30px rgba(124,58,237,0.3);cursor:pointer;";
+      refresh.textContent = "有新版本，点击刷新";
+      refresh.addEventListener("click", () => window.location.reload());
+      document.body.appendChild(refresh);
+      window.setTimeout(() => refresh.remove(), 15000);
+    }
+  });
 }
 
 function bindImageFallbacks() {
@@ -91,11 +103,11 @@ function bindForms() {
 }
 
 function bindButtons() {
-  $("#clearFridgeForm").addEventListener("click", () => resetFridgeForm());
-  $("#clearClothesForm").addEventListener("click", () => resetClothesForm());
-  $("#clearDateForm").addEventListener("click", () => resetDateForm());
-  $("#clearStorageForm").addEventListener("click", () => resetStorageForm());
-  $("#clearRestockForm").addEventListener("click", () => resetRestockForm());
+  $("#clearFridgeForm").addEventListener("click", () => resetAndShowMain("fridge", resetFridgeForm));
+  $("#clearClothesForm").addEventListener("click", () => resetAndShowMain("clothes", resetClothesForm));
+  $("#clearDateForm").addEventListener("click", () => resetAndShowMain("dates", resetDateForm));
+  $("#clearStorageForm").addEventListener("click", () => resetAndShowMain("storage", resetStorageForm));
+  $("#clearRestockForm").addEventListener("click", () => resetAndShowMain("restock", resetRestockForm));
   $("#exportClothesImageButton").addEventListener("click", exportClothesImage);
   $("#exportCalendarButton").addEventListener("click", exportCalendarFile);
   $("#notifyButton").addEventListener("click", toggleNotifications);
@@ -238,9 +250,29 @@ function setActiveTab(tabName, shouldScroll = false) {
   });
 
   if (shouldScroll) {
-    const activeSection = $(`#tab-${tabName}`);
-    if (activeSection) activeSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => focusMainVisual(tabName), 80);
   }
+}
+
+function focusMainVisual(tabName) {
+  const activeSection = $(`#tab-${tabName}`);
+  if (!activeSection) return;
+  const target = $(".scene-visual", activeSection) || activeSection;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function closeSceneFurniture(tabName) {
+  const activeSection = $(`#tab-${tabName}`);
+  if (!activeSection) return;
+  $$("[data-furniture]", activeSection).forEach((button) => {
+    if (button.classList.contains("door-open")) toggleFurnitureDoor(button);
+  });
+}
+
+function resetAndShowMain(tabName, resetter) {
+  resetter();
+  closeSceneFurniture(tabName);
+  focusMainVisual(tabName);
 }
 
 function handleFridgeSubmit(event) {
@@ -335,20 +367,36 @@ function renderScenes() {
 function renderSceneItems(selector, kind, list, getLabel, emptyText) {
   const container = $(selector);
   if (!container) return;
-  const items = list.slice(0, 8);
+  const items = list;
   if (!items.length) {
     container.innerHTML = `<span class="scene-empty">${escapeHtml(emptyText)}</span>`;
+    syncSceneOverlay(container);
     return;
   }
 
-  const extraCount = Math.max(0, list.length - items.length);
   const chips = items.map((item) => `
     <button type="button" data-open-kind="${escapeAttr(kind)}" data-id="${escapeAttr(item.id)}">
       ${escapeHtml(getLabel(item) || "未命名")}
     </button>
   `);
-  if (extraCount) chips.push(`<span>还有 ${extraCount} 项</span>`);
   container.innerHTML = chips.join("");
+  syncSceneOverlay(container);
+}
+
+function syncSceneOverlay(container) {
+  const scene = container.closest(".scene-card");
+  const visual = scene ? $(".scene-visual", scene) : null;
+  if (!visual) return;
+
+  let overlay = $(".scene-storage-overlay", visual);
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.className = "scene-storage-overlay";
+    overlay.setAttribute("aria-label", "打开后显示的收纳内容");
+    visual.appendChild(overlay);
+  }
+
+  overlay.innerHTML = container.innerHTML;
 }
 
 function renderAlerts() {
@@ -369,7 +417,8 @@ function renderAlerts() {
 
   state.restock.forEach((item) => {
     if (isRestockNeeded(item)) {
-      lines.push(`补货清单里的「${item.name}」${item.status || "需要补货"}。`);
+      const stockText = item.stock ? `当前库存：${item.stock}，` : "";
+      lines.push(`补货清单里的「${item.name}」${stockText}少于 2 个时需要补货。`);
     }
   });
 
@@ -540,7 +589,7 @@ function renderRestock() {
         <article class="item-card" data-item-kind="restock" data-item-id="${escapeAttr(item.id)}">
           <div class="card-top">
             <h4>${escapeHtml(item.name)}</h4>
-            <span class="tag ${status.className}">${escapeHtml(item.status || "需要补货")}</span>
+            <span class="tag ${status.className}">${escapeHtml(status.text)}</span>
           </div>
           ${compactMeta([
             item.category || "其他",
@@ -573,6 +622,8 @@ function toggleFurnitureDoor(button) {
   button.classList.toggle("door-open");
   const isOpen = button.classList.contains("door-open");
   button.setAttribute("aria-pressed", isOpen ? "true" : "false");
+  const scene = button.closest(".scene-card");
+  if (scene) scene.classList.toggle("main-open", isOpen);
   if (button.dataset.furniture === "fridge") {
     button.setAttribute("aria-label", isOpen ? "关闭我的冰箱" : "打开我的冰箱");
   }
@@ -581,6 +632,12 @@ function toggleFurnitureDoor(button) {
   }
   if (button.dataset.furniture === "cabinet") {
     button.setAttribute("aria-label", isOpen ? "关闭重要物品柜" : "打开重要物品柜");
+  }
+  if (button.dataset.furniture === "pantry") {
+    button.setAttribute("aria-label", isOpen ? "关闭补货购物车" : "打开补货购物车");
+  }
+  if (button.dataset.furniture === "clock") {
+    button.setAttribute("aria-label", isOpen ? "关闭提醒时钟" : "打开提醒时钟");
   }
 }
 
@@ -630,7 +687,10 @@ function openPhotoPicker(button) {
 function filterBySearch(list) {
   const query = elements.searchInput.value.trim().toLowerCase();
   if (!query) return list;
-  return list.filter((item) => JSON.stringify(item).toLowerCase().includes(query));
+  return list.filter((item) => {
+    const { photo, ...searchable } = item;
+    return JSON.stringify(searchable).toLowerCase().includes(query);
+  });
 }
 
 function sortByDate(a, b) {
@@ -677,17 +737,26 @@ function getDateStatus(item) {
 }
 
 function getRestockStatus(item) {
-  if (item.status === "已备足") return { className: "good", level: "good" };
-  if (item.status === "下次再看") return { className: "blue", level: "blue" };
-  if (item.status === "库存偏低") return { className: "warn", level: "warn" };
-  return { className: "danger", level: "danger" };
+  const stockCount = getRestockStockCount(item);
+  if (Number.isFinite(stockCount)) {
+    if (stockCount < 2) return { text: "少于 2，需补货", className: "danger", level: "danger" };
+    return { text: "库存够用", className: "good", level: "good" };
+  }
+  if (item.status === "已备足") return { text: "已备足", className: "good", level: "good" };
+  if (item.status === "下次再看") return { text: "下次再看", className: "blue", level: "blue" };
+  if (item.status === "库存偏低") return { text: "库存偏低", className: "warn", level: "warn" };
+  return { text: item.status || "需要补货", className: "danger", level: "danger" };
 }
 
 function isRestockNeeded(item) {
+  const stockCount = getRestockStockCount(item);
+  if (Number.isFinite(stockCount)) return stockCount < 2;
   return item.status === "需要补货" || item.status === "库存偏低" || !item.status;
 }
 
 function getRestockRank(item) {
+  const stockCount = getRestockStockCount(item);
+  if (Number.isFinite(stockCount)) return stockCount < 2 ? 0 : 3;
   const ranks = {
     需要补货: 0,
     库存偏低: 1,
@@ -695,6 +764,14 @@ function getRestockRank(item) {
     已备足: 3,
   };
   return ranks[item.status] ?? 0;
+}
+
+function getRestockStockCount(item) {
+  const text = String(item.stock || "").replace(/[０-９]/g, (char) =>
+    String.fromCharCode(char.charCodeAt(0) - 65248)
+  );
+  const match = text.match(/\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : Number.NaN;
 }
 
 function daysUntil(value) {
@@ -982,14 +1059,14 @@ function loadNotified() {
 }
 
 function exportCalendarFile() {
-  if (!state.dates.length) {
+  const dateItems = state.dates.filter((item) => item.date);
+  if (!dateItems.length) {
     alert("请先添加重要日期。");
     return;
   }
 
   const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-  const events = state.dates
-    .filter((item) => item.date)
+  const events = dateItems
     .map((item) => {
       const start = item.date.replaceAll("-", "");
       const endDate = parseLocalDate(item.date);
@@ -1006,7 +1083,7 @@ function exportCalendarFile() {
         `SUMMARY:${icsEscape(item.name)}`,
         `DESCRIPTION:${icsEscape(description)}`,
         "BEGIN:VALARM",
-        "TRIGGER:-P1D",
+        "TRIGGER;RELATED=START:-P1D",
         "ACTION:DISPLAY",
         `DESCRIPTION:${icsEscape(`明天：${item.name}`)}`,
         "END:VALARM",
@@ -1015,8 +1092,34 @@ function exportCalendarFile() {
     })
     .join("\r\n");
 
-  const content = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Family Home Page//ZH-CN//EN", "CALSCALE:GREGORIAN", events, "END:VCALENDAR"].join("\r\n");
-  downloadBlob("\ufeff" + content, "家庭重要日期提醒.ics", "text/calendar;charset=utf-8");
+  const content = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Cyber Homekeeper//ZH-CN//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "X-WR-CALNAME:赛博小管家重要日期",
+    events,
+    "END:VCALENDAR",
+  ].join("\r\n");
+  openCalendarImport(content);
+}
+
+function openCalendarImport(content) {
+  const blob = new Blob(["\ufeff" + content], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "赛博小管家重要日期.ics";
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+  window.setTimeout(() => {
+    alert("已生成手机日历文件。iPhone 请用 Safari 打开并选择加入日历；每个日期都已设置提前一天提醒。若当前浏览器提示文件打开失败，请点右上角选择用 Safari 打开。");
+  }, 300);
 }
 
 async function exportClothesImage() {
@@ -1220,8 +1323,4 @@ function escapeHtml(value) {
 
 function escapeAttr(value) {
   return escapeHtml(value).replace(/`/g, "&#096;");
-}
-
-function formatNote(value) {
-  return escapeHtml(value).replace(/\n/g, "<br />");
 }
