@@ -227,6 +227,68 @@ body {
   }
 }
 
+/* Center every large scene image after switching bottom tabs. */
+@media (max-width: 640px) {
+  .app-header {
+    width: calc(100vw - 22px);
+    max-width: calc(100vw - 22px);
+    margin: 0 auto 8px;
+    padding: 12px 4px 8px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .app-header h1 {
+    font-size: 1.55rem !important;
+  }
+
+  .header-actions .ghost-button {
+    min-height: 42px;
+    padding: 0 18px;
+    font-size: 1rem;
+  }
+
+  .app-main {
+    padding-top: 10px !important;
+  }
+
+  .toolbar {
+    width: calc(100vw - 22px) !important;
+    max-width: calc(100vw - 22px) !important;
+    margin-top: 20px !important;
+  }
+
+  .search-box {
+    min-height: 64px;
+    border-radius: 22px;
+  }
+
+  .scene-visual {
+    left: calc(50% + 12px) !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .photo-fridge-button.fridge-visual.furniture-piece,
+  .photo-closet-button.closet-visual.furniture-piece,
+  .photo-cabinet-button.cabinet-visual.furniture-piece,
+  .photo-pantry-button.pantry-visual.furniture-piece {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .photo-fridge-button .fridge-photo,
+  .photo-closet-button .closet-photo,
+  .photo-cabinet-button .cabinet-photo,
+  .photo-pantry-button .pantry-photo,
+  .cheese-clock-image {
+    object-position: center center !important;
+  }
+}
+
 body {
   --page-stage: min(560px, calc(100vw - 24px));
   font-size: 17px;
@@ -511,6 +573,29 @@ body {
     linear-gradient(180deg, #ead6ff 0%, #f6ecff 48%, #fff7fd 100%);
 }
 
+.app-header {
+  width: min(1040px, calc(100vw - 28px));
+  margin: 10px auto 8px;
+  padding: 10px 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.68) !important;
+  box-shadow: 0 14px 34px rgba(116, 64, 178, 0.14);
+  backdrop-filter: blur(16px);
+}
+
+.app-header h1 {
+  font-size: clamp(1.25rem, 4vw, 1.85rem) !important;
+  letter-spacing: 0 !important;
+}
+
+.app-header .ghost-button {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.98rem;
+}
+
 .home-hero-card {
   position: relative !important;
   display: block !important;
@@ -684,6 +769,24 @@ body {
 @media (max-width: 640px) {
   body {
     padding-bottom: 126px;
+  }
+
+  .app-header {
+    width: calc(100vw - 22px);
+    margin-top: 6px;
+    margin-bottom: 8px;
+    padding: 8px 10px !important;
+    border-radius: 18px;
+  }
+
+  .app-header h1 {
+    font-size: 1.2rem !important;
+  }
+
+  .app-header .ghost-button {
+    min-height: 36px;
+    padding: 7px 12px;
+    font-size: 0.9rem;
   }
 
   .home-hero-card {
