@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyber-homekeeper-v29";
+const CACHE_NAME = "cyber-homekeeper-v33";
 const APP_SHELL = [
   "./",
   "./index.html",

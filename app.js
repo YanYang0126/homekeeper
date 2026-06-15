@@ -32,6 +32,7 @@ const elements = {
 init();
 
 function init() {
+  document.body.dataset.activeTab = $(".tab-button.active")?.dataset.tab || "fridge";
   registerServiceWorker();
   bindImageFallbacks();
   bindTabs();
@@ -41,6 +42,7 @@ function init() {
   bindPhotoPreview(elements.storagePhotoInput, elements.storagePhotoPreview);
   ensureFridgeExperience();
   useRealFridgeImages();
+  useRealClosetImages();
   updateReminderButton();
   render();
   checkBrowserNotifications(false);
@@ -138,20 +140,26 @@ function ensureFridgeExperience() {
 }
 
 function useRealFridgeImages() {
+  const scene = $(".fridge-scene");
   const stage = $(".photo-fridge-button .fridge-photo-stage");
   if (stage && stage.dataset.realFridgeReady !== "true") {
     stage.removeAttribute("aria-hidden");
     stage.dataset.realFridgeReady = "true";
     stage.innerHTML = `
-      <div class="fridge-image-stack" aria-hidden="true">
+      <div class="fridge-image-stack">
         <img class="fridge-photo fridge-photo-closed" src="assets/main/fridge-closed.jpg" alt="" loading="eager" />
         <img class="fridge-photo fridge-photo-open" src="assets/main/fridge-open.jpg" alt="" loading="eager" />
+        <div class="fridge-food-overlay" id="fridgePreviewGrid" aria-label="冰箱里的食材"></div>
       </div>
     `;
   }
 
   const visual = $("#tab-fridge .scene-visual");
-  const actionBar = visual ? $(".fridge-action-bar", visual) : null;
+  let actionBar = scene ? $(".fridge-action-bar", scene) : null;
+  if (!actionBar && visual) actionBar = $(".fridge-action-bar", visual);
+  if (scene && actionBar && actionBar.parentElement !== scene) {
+    scene.appendChild(actionBar);
+  }
   if (actionBar) {
     actionBar.innerHTML = `
       <button class="fridge-add-button" type="button" data-fridge-add>+ 添加食材</button>
@@ -159,18 +167,7 @@ function useRealFridgeImages() {
     `;
   }
 
-  if (visual && !$(".fridge-image-hotspots", visual)) {
-    visual.insertAdjacentHTML(
-      "beforeend",
-      `
-        <div class="fridge-image-hotspots" aria-label="冰箱图片功能区">
-          <button class="fridge-hotspot fridge-hotspot-overview" type="button" data-fridge-overview aria-label="查看我的冰箱"></button>
-          <button class="fridge-hotspot fridge-hotspot-today" type="button" data-fridge-today aria-label="查看今日提醒"></button>
-          <button class="fridge-hotspot fridge-hotspot-tip" type="button" data-fridge-tip aria-label="查看冰箱小贴士"></button>
-        </div>
-      `
-    );
-  }
+  $$(".fridge-image-hotspots").forEach((node) => node.remove());
 
   const dashboard = $(".fridge-dashboard");
   if (dashboard && dashboard.dataset.realFridgeDashboard !== "true") {
@@ -193,7 +190,7 @@ function useRealFridgeImages() {
           <div><dt>剩余空间</dt><dd><span id="fridgeOverviewSpace">80</span> 格</dd></div>
         </dl>
       </section>
-      <section class="fridge-widget">
+      <section class="fridge-widget fridge-today-card">
         <div class="fridge-widget-title">
           <button class="fridge-panel-title" type="button" data-fridge-today>今日提醒</button>
           <button class="fridge-icon-button" type="button" data-fridge-organize aria-label="整理冰箱">›</button>
@@ -207,6 +204,18 @@ function useRealFridgeImages() {
         </div>
         <p id="fridgeTipText">添加食材后，这里会自动给出整理建议。</p>
       </section>
+    `;
+  }
+}
+
+function useRealClosetImages() {
+  const stage = $(".photo-closet-button .closet-photo-stage");
+  if (stage && stage.dataset.realClosetReady !== "true") {
+    stage.removeAttribute("aria-hidden");
+    stage.dataset.realClosetReady = "true";
+    stage.innerHTML = `
+      <img class="closet-photo closet-photo-closed" src="assets/main/closet-closed.jpg" alt="" loading="eager" />
+      <img class="closet-photo closet-photo-open" src="assets/main/closet-open.jpg" alt="" loading="eager" />
     `;
   }
 }
@@ -292,6 +301,16 @@ function bindButtons() {
     const fridgeOrganizeButton = event.target.closest("[data-fridge-organize]");
     const fridgePanelButton = event.target.closest("[data-fridge-overview], [data-fridge-today], [data-fridge-tip]");
 
+    if (editButton) {
+      editItem(editButton.dataset.editKind, editButton.dataset.id);
+      return;
+    }
+
+    if (deleteButton) {
+      handleDeleteButton(deleteButton);
+      return;
+    }
+
     if (fridgeAddButton) {
       focusFridgeForm();
       return;
@@ -333,16 +352,6 @@ function bindButtons() {
       return;
     }
 
-    if (editButton) {
-      editItem(editButton.dataset.editKind, editButton.dataset.id);
-      return;
-    }
-
-    if (deleteButton) {
-      handleDeleteButton(deleteButton);
-      return;
-    }
-
     if (photoButton) {
       openImageDialog(photoButton.dataset.openPhoto, photoButton.dataset.caption || "照片");
       return;
@@ -351,6 +360,13 @@ function bindButtons() {
 
   elements.imageDialog.addEventListener("click", (event) => {
     if (event.target === elements.imageDialog) closeImageDialog();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const card = event.target.closest(".fridge-food-card[data-edit-kind]");
+    if (!card || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    editItem(card.dataset.editKind, card.dataset.id);
   });
 }
 
@@ -433,6 +449,7 @@ function upsert(kind, item) {
 }
 
 function setActiveTab(tabName, shouldScroll = false) {
+  document.body.dataset.activeTab = tabName;
   $$(".tab-button").forEach((button) => {
     button.classList.toggle("active", button.dataset.tab === tabName);
   });
@@ -476,11 +493,15 @@ function handleFridgeSubmit(event) {
   if (saveData()) {
     resetFridgeForm();
     render();
+    ensureFridgeOpen();
+    focusMainVisual("fridge");
   }
 }
 
 function focusFridgeForm() {
   setActiveTab("fridge");
+  $("#tab-fridge")?.classList.add("fridge-editing");
+  ensureFridgeOpen();
   const nameField = elements.fridgeForm.elements.name;
   elements.fridgeForm.scrollIntoView({ behavior: "smooth", block: "center" });
   window.setTimeout(() => nameField?.focus(), 260);
@@ -749,7 +770,7 @@ function renderFridgeDashboard(items) {
         .map((item) => {
           const status = getFridgeStatus(item);
           return `
-            <span class="fridge-food-card ${fridgeFoodTone(item.name)}">
+            <span class="fridge-food-card ${fridgeFoodTone(item.name)}" role="button" tabindex="0" data-edit-kind="fridge" data-id="${escapeAttr(item.id)}">
               <i aria-hidden="true">${fridgeFoodIcon(item.name)}</i>
               <b>${escapeHtml(item.name || "未命名")}</b>
               <em>${escapeHtml(status.text)}</em>
@@ -1174,6 +1195,8 @@ function editItem(kind, id) {
     fillForm(elements.fridgeForm, item);
     setSubmitText(elements.fridgeForm, "更新冰箱记录");
     setActiveTab("fridge");
+    $("#tab-fridge")?.classList.add("fridge-editing");
+    ensureFridgeOpen();
     formToShow = elements.fridgeForm;
   }
 
@@ -1240,6 +1263,7 @@ function resetFridgeForm() {
   elements.fridgeForm.reset();
   elements.fridgeForm.elements.id.value = "";
   setSubmitText(elements.fridgeForm, "保存到冰箱");
+  $("#tab-fridge")?.classList.remove("fridge-editing");
 }
 
 function resetClothesForm() {
