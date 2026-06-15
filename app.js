@@ -39,9 +39,176 @@ function init() {
   bindButtons();
   bindPhotoPreview(elements.clothesPhotoInput, elements.clothesPhotoPreview);
   bindPhotoPreview(elements.storagePhotoInput, elements.storagePhotoPreview);
+  ensureFridgeExperience();
+  useRealFridgeImages();
   updateReminderButton();
   render();
   checkBrowserNotifications(false);
+}
+
+function ensureFridgeExperience() {
+  const stage = $(".photo-fridge-button .fridge-photo-stage");
+  if (stage && !$(".fridge-closed-art", stage)) {
+    stage.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div class="fridge-closed-art" aria-hidden="true">
+          <span class="fridge-ear fridge-ear-left"></span>
+          <span class="fridge-ear fridge-ear-right"></span>
+          <div class="fridge-face">
+            <span class="fridge-eye fridge-eye-left"></span>
+            <span class="fridge-eye fridge-eye-right"></span>
+            <span class="fridge-nose"></span>
+            <span class="fridge-smile"></span>
+          </div>
+          <span class="fridge-door-line"></span>
+          <span class="fridge-handle fridge-handle-left"></span>
+          <span class="fridge-handle fridge-handle-right"></span>
+          <span class="fridge-drawer-egg"></span>
+          <span class="fridge-foot fridge-foot-left"></span>
+          <span class="fridge-foot fridge-foot-right"></span>
+        </div>
+        <div class="fridge-live-layout" aria-hidden="true">
+          <div class="fridge-open-shell">
+            <div class="fridge-live-top">
+              <span>保鲜区</span>
+              <b id="fridgeLiveCount">0/80</b>
+            </div>
+            <div class="fridge-live-shelves" id="fridgePreviewGrid"></div>
+          </div>
+        </div>
+      `
+    );
+  }
+
+  const visual = $("#tab-fridge .scene-visual");
+  if (visual && !$(".fridge-action-bar", visual)) {
+    visual.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div class="fridge-action-bar">
+          <button class="fridge-add-button" type="button" data-fridge-add>+ 添加食材</button>
+          <button class="fridge-organize-button" type="button" data-fridge-organize>整理冰箱</button>
+        </div>
+      `
+    );
+  }
+
+  const scene = $(".fridge-scene");
+  if (scene && !$(".fridge-dashboard", scene)) {
+    scene.insertAdjacentHTML(
+      "beforeend",
+      `
+        <aside class="fridge-dashboard" aria-label="冰箱功能面板">
+          <section class="fridge-widget fridge-overview-card">
+            <div class="fridge-widget-title">
+              <button class="fridge-panel-title" type="button" data-fridge-add>我的冰箱</button>
+              <button class="fridge-icon-button" type="button" data-fridge-add aria-label="添加食材">✎</button>
+            </div>
+            <div class="fridge-capacity">
+              <b id="fridgeOverviewCapacity">0/80</b>
+              <span id="fridgeOverviewPercent">0%</span>
+            </div>
+            <div class="fridge-progress"><i id="fridgeOverviewBar"></i></div>
+            <dl class="fridge-stats">
+              <div><dt>物品总数</dt><dd><span id="fridgeOverviewTotal">0</span> 个</dd></div>
+              <div><dt>快过期（3天内）</dt><dd><span id="fridgeOverviewSoon">0</span> 件</dd></div>
+              <div><dt>已过期</dt><dd><span id="fridgeOverviewExpired">0</span> 件</dd></div>
+              <div><dt>剩余空间</dt><dd><span id="fridgeOverviewSpace">80</span> 格</dd></div>
+            </dl>
+          </section>
+          <section class="fridge-widget">
+            <div class="fridge-widget-title">
+              <span>今日提醒</span>
+              <button class="fridge-icon-button" type="button" data-fridge-organize aria-label="整理冰箱">›</button>
+            </div>
+            <div class="fridge-today-list" id="fridgeTodayList"></div>
+          </section>
+          <section class="fridge-widget fridge-tip-card">
+            <div class="fridge-widget-title">
+              <span>冰箱小贴士</span>
+              <i aria-hidden="true">🐾</i>
+            </div>
+            <p id="fridgeTipText">添加食材后，这里会自动给出整理建议。</p>
+          </section>
+        </aside>
+      `
+    );
+  }
+}
+
+function useRealFridgeImages() {
+  const stage = $(".photo-fridge-button .fridge-photo-stage");
+  if (stage && stage.dataset.realFridgeReady !== "true") {
+    stage.removeAttribute("aria-hidden");
+    stage.dataset.realFridgeReady = "true";
+    stage.innerHTML = `
+      <div class="fridge-image-stack" aria-hidden="true">
+        <img class="fridge-photo fridge-photo-closed" src="assets/main/fridge-closed.jpg" alt="" loading="eager" />
+        <img class="fridge-photo fridge-photo-open" src="assets/main/fridge-open.jpg" alt="" loading="eager" />
+      </div>
+    `;
+  }
+
+  const visual = $("#tab-fridge .scene-visual");
+  const actionBar = visual ? $(".fridge-action-bar", visual) : null;
+  if (actionBar) {
+    actionBar.innerHTML = `
+      <button class="fridge-add-button" type="button" data-fridge-add>+ 添加食材</button>
+      <button class="fridge-organize-button" type="button" data-fridge-organize>整理冰箱</button>
+    `;
+  }
+
+  if (visual && !$(".fridge-image-hotspots", visual)) {
+    visual.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div class="fridge-image-hotspots" aria-label="冰箱图片功能区">
+          <button class="fridge-hotspot fridge-hotspot-overview" type="button" data-fridge-overview aria-label="查看我的冰箱"></button>
+          <button class="fridge-hotspot fridge-hotspot-today" type="button" data-fridge-today aria-label="查看今日提醒"></button>
+          <button class="fridge-hotspot fridge-hotspot-tip" type="button" data-fridge-tip aria-label="查看冰箱小贴士"></button>
+        </div>
+      `
+    );
+  }
+
+  const dashboard = $(".fridge-dashboard");
+  if (dashboard && dashboard.dataset.realFridgeDashboard !== "true") {
+    dashboard.dataset.realFridgeDashboard = "true";
+    dashboard.innerHTML = `
+      <section class="fridge-widget fridge-overview-card">
+        <div class="fridge-widget-title">
+          <button class="fridge-panel-title" type="button" data-fridge-overview>我的冰箱</button>
+          <button class="fridge-icon-button" type="button" data-fridge-add aria-label="添加食材">✎</button>
+        </div>
+        <div class="fridge-capacity">
+          <b id="fridgeOverviewCapacity">0/80</b>
+          <span id="fridgeOverviewPercent">0%</span>
+        </div>
+        <div class="fridge-progress"><i id="fridgeOverviewBar"></i></div>
+        <dl class="fridge-stats">
+          <div><dt>物品总数</dt><dd><span id="fridgeOverviewTotal">0</span> 个</dd></div>
+          <div><dt>快过期（3天内）</dt><dd><span id="fridgeOverviewSoon">0</span> 件</dd></div>
+          <div><dt>已过期</dt><dd><span id="fridgeOverviewExpired">0</span> 件</dd></div>
+          <div><dt>剩余空间</dt><dd><span id="fridgeOverviewSpace">80</span> 格</dd></div>
+        </dl>
+      </section>
+      <section class="fridge-widget">
+        <div class="fridge-widget-title">
+          <button class="fridge-panel-title" type="button" data-fridge-today>今日提醒</button>
+          <button class="fridge-icon-button" type="button" data-fridge-organize aria-label="整理冰箱">›</button>
+        </div>
+        <div class="fridge-today-list" id="fridgeTodayList"></div>
+      </section>
+      <section class="fridge-widget fridge-tip-card">
+        <div class="fridge-widget-title">
+          <button class="fridge-panel-title" type="button" data-fridge-tip>冰箱小贴士</button>
+          <i aria-hidden="true">🐾</i>
+        </div>
+        <p id="fridgeTipText">添加食材后，这里会自动给出整理建议。</p>
+      </section>
+    `;
+  }
 }
 
 function registerServiceWorker() {
@@ -121,6 +288,30 @@ function bindButtons() {
     const photoTrigger = event.target.closest("[data-photo-trigger]");
     const furnitureButton = event.target.closest("[data-furniture]");
     const restockPreset = event.target.closest("[data-restock-preset]");
+    const fridgeAddButton = event.target.closest("[data-fridge-add]");
+    const fridgeOrganizeButton = event.target.closest("[data-fridge-organize]");
+    const fridgePanelButton = event.target.closest("[data-fridge-overview], [data-fridge-today], [data-fridge-tip]");
+
+    if (fridgeAddButton) {
+      focusFridgeForm();
+      return;
+    }
+
+    if (fridgeOrganizeButton) {
+      organizeFridge();
+      return;
+    }
+
+    if (fridgePanelButton) {
+      if (fridgePanelButton.hasAttribute("data-fridge-today")) {
+        openFridgePanel("today");
+      } else if (fridgePanelButton.hasAttribute("data-fridge-tip")) {
+        openFridgePanel("tip");
+      } else {
+        openFridgePanel("overview");
+      }
+      return;
+    }
 
     if (furnitureButton) {
       toggleFurnitureDoor(furnitureButton);
@@ -288,6 +479,60 @@ function handleFridgeSubmit(event) {
   }
 }
 
+function focusFridgeForm() {
+  setActiveTab("fridge");
+  const nameField = elements.fridgeForm.elements.name;
+  elements.fridgeForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  window.setTimeout(() => nameField?.focus(), 260);
+}
+
+function ensureFridgeOpen() {
+  const fridgeButton = $('[data-furniture="fridge"]');
+  if (fridgeButton && !fridgeButton.classList.contains("door-open")) {
+    toggleFurnitureDoor(fridgeButton);
+  }
+  return fridgeButton;
+}
+
+function openFridgePanel(panel) {
+  setActiveTab("fridge");
+  ensureFridgeOpen();
+  focusMainVisual("fridge");
+
+  const panelMap = {
+    overview: [".fridge-overview-card", "我的冰箱已打开"],
+    today: [".fridge-today-list", "今日提醒已打开"],
+    tip: [".fridge-tip-card", "冰箱小贴士已打开"],
+  };
+  const [selector, fallbackMessage] = panelMap[panel] || panelMap.overview;
+  const message = {
+    overview: "\u6211\u7684\u51b0\u7bb1\u5df2\u6253\u5f00",
+    today: "\u4eca\u65e5\u63d0\u9192\u5df2\u6253\u5f00",
+    tip: "\u51b0\u7bb1\u5c0f\u8d34\u58eb\u5df2\u6253\u5f00",
+  }[panel] || fallbackMessage;
+  const target = $(selector);
+  if (target) {
+    target.classList.remove("fridge-panel-flash");
+    void target.offsetWidth;
+    target.classList.add("fridge-panel-flash");
+    window.setTimeout(() => target.classList.remove("fridge-panel-flash"), 1400);
+  }
+  showFridgeToast(message);
+}
+
+function organizeFridge() {
+  state.fridge.sort((a, b) => {
+    const byExpiry = sortByDate(expiryDate(a), expiryDate(b));
+    if (byExpiry !== 0) return byExpiry;
+    return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+  });
+  if (!saveData()) return;
+  render();
+  ensureFridgeOpen();
+  focusMainVisual("fridge");
+  showFridgeToast("已按到期时间整理冰箱");
+}
+
 async function handleClothesSubmit(event) {
   event.preventDefault();
   const data = getFormData(elements.clothesForm);
@@ -436,6 +681,11 @@ function renderAlerts() {
 }
 
 function renderFridge() {
+  const allItems = state.fridge
+    .slice()
+    .sort((a, b) => sortByDate(expiryDate(a), expiryDate(b)));
+  renderFridgeDashboard(allItems);
+
   const list = filterBySearch(state.fridge)
     .slice()
     .sort((a, b) => sortByDate(expiryDate(a), expiryDate(b)));
@@ -466,6 +716,124 @@ function renderFridge() {
       `;
     })
     .join("");
+}
+
+function renderFridgeDashboard(items) {
+  const capacity = 80;
+  const records = items.map((item) => {
+    const expiry = expiryDate(item);
+    const diff = expiry ? daysUntil(expiry) : Number.NaN;
+    return { item, expiry, diff, status: getFridgeStatus(item) };
+  });
+  const expired = records.filter((entry) => Number.isFinite(entry.diff) && entry.diff < 0);
+  const soon = records.filter((entry) => Number.isFinite(entry.diff) && entry.diff >= 0 && entry.diff <= 3);
+  const percent = Math.min(100, Math.round((items.length / capacity) * 100));
+
+  setText($("#fridgeLiveCount"), `${items.length}/${capacity}`);
+  setText($("#fridgeOverviewCapacity"), `${items.length}/${capacity}`);
+  setText($("#fridgeOverviewPercent"), `${percent}%`);
+  setText($("#fridgeOverviewTotal"), items.length);
+  setText($("#fridgeOverviewSoon"), soon.length);
+  setText($("#fridgeOverviewExpired"), expired.length);
+  setText($("#fridgeOverviewSpace"), Math.max(0, capacity - items.length));
+  const bar = $("#fridgeOverviewBar");
+  if (bar) bar.style.width = `${percent}%`;
+
+  const previewGrid = $("#fridgePreviewGrid");
+  if (previewGrid) {
+    const previewItems = items.slice(0, 20);
+    if (!previewItems.length) {
+      previewGrid.innerHTML = `<span class="fridge-empty-shelf">添加食材后，会自动摆进冰箱小格子里。</span>`;
+    } else {
+      previewGrid.innerHTML = previewItems
+        .map((item) => {
+          const status = getFridgeStatus(item);
+          return `
+            <span class="fridge-food-card ${fridgeFoodTone(item.name)}">
+              <i aria-hidden="true">${fridgeFoodIcon(item.name)}</i>
+              <b>${escapeHtml(item.name || "未命名")}</b>
+              <em>${escapeHtml(status.text)}</em>
+            </span>
+          `;
+        })
+        .join("");
+    }
+  }
+
+  const todayList = $("#fridgeTodayList");
+  if (todayList) {
+    const reminders = records
+      .filter((entry) => Number.isFinite(entry.diff) && entry.diff <= 3)
+      .sort((a, b) => a.diff - b.diff)
+      .slice(0, 3);
+
+    todayList.innerHTML = reminders.length
+      ? reminders
+          .map((entry) => `
+            <button class="fridge-reminder-row" type="button" data-open-kind="fridge" data-id="${escapeAttr(entry.item.id)}">
+              <span aria-hidden="true">${fridgeFoodIcon(entry.item.name)}</span>
+              <b>${escapeHtml(entry.item.name || "未命名")}</b>
+              <em>${escapeHtml(entry.status.text)}</em>
+            </button>
+          `)
+          .join("")
+      : `<div class="fridge-reminder-empty">今天没有需要特别处理的食材。</div>`;
+  }
+
+  const tip = $("#fridgeTipText");
+  if (tip) {
+    let text = "冰箱状态不错，常用食材放在视线最前面，会更容易记得吃。";
+    if (!items.length) {
+      text = "先添加牛奶、鸡蛋、蔬菜和水果，冰箱会自动帮你排队显示。";
+    } else if (expired.length) {
+      text = `有 ${expired.length} 个食材已经过期，建议今天先清理，再补充新鲜食材。`;
+    } else if (soon.length) {
+      text = `有 ${soon.length} 个食材 3 天内到期，适合放到最前排优先吃。`;
+    }
+    tip.textContent = text;
+  }
+}
+
+function setText(element, value) {
+  if (element) element.textContent = value;
+}
+
+function fridgeFoodIcon(name) {
+  const text = String(name || "").toLowerCase();
+  if (/牛奶|奶|酸奶|milk/.test(text)) return "🥛";
+  if (/鸡蛋|蛋|egg/.test(text)) return "🥚";
+  if (/生菜|青菜|蔬菜|西兰花|菜|broccoli|lettuce/.test(text)) return "🥬";
+  if (/番茄|西红柿|tomato/.test(text)) return "🍅";
+  if (/苹果|橙|水果|蓝莓|葡萄|柠檬|牛油果|banana|apple|orange|fruit/.test(text)) return "🍎";
+  if (/肉|鱼|虾|鸡胸|三文鱼|牛肉|猪肉|meat|fish/.test(text)) return "🥩";
+  if (/水|可乐|气泡|饮料|果汁|drink|cola/.test(text)) return "🥤";
+  if (/芝士|奶酪|黄油|cheese|butter/.test(text)) return "🧀";
+  if (/饼干|零食|薯片|snack|pocky/.test(text)) return "🍪";
+  return "🍱";
+}
+
+function fridgeFoodTone(name) {
+  const text = String(name || "").toLowerCase();
+  if (/牛奶|奶|酸奶|milk/.test(text)) return "tone-milk";
+  if (/鸡蛋|蛋|egg/.test(text)) return "tone-egg";
+  if (/生菜|青菜|蔬菜|西兰花|菜|broccoli|lettuce/.test(text)) return "tone-veg";
+  if (/苹果|橙|水果|蓝莓|葡萄|柠檬|牛油果|番茄|西红柿|fruit|tomato/.test(text)) return "tone-fruit";
+  if (/肉|鱼|虾|鸡胸|三文鱼|牛肉|猪肉|meat|fish/.test(text)) return "tone-meat";
+  if (/水|可乐|气泡|饮料|果汁|drink|cola/.test(text)) return "tone-drink";
+  return "tone-default";
+}
+
+function showFridgeToast(message) {
+  let toast = $(".fridge-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.className = "fridge-toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("show");
+  window.clearTimeout(showFridgeToast.timer);
+  showFridgeToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
 function renderClothes() {

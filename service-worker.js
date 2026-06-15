@@ -1,9 +1,10 @@
-const CACHE_NAME = "cyber-homekeeper-v27";
+const CACHE_NAME = "cyber-homekeeper-v29";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
   "./mobile-polish.css",
+  "./fridge-final.css",
   "./app.js",
   "./manifest.webmanifest",
   "./qisi-cutout.png",
