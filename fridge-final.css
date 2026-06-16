@@ -1139,9 +1139,21 @@ body[data-active-tab="fridge"] .app-header {
 }
 
 .closet-zone-empty {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: max-content !important;
+  min-width: 82px !important;
+  max-width: 100% !important;
+  padding: 6px 10px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 248, 250, 0.72) !important;
   color: #a98079 !important;
   font-size: 0.76rem !important;
   font-weight: 800 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  text-align: center !important;
 }
 
 .closet-dressing-room {
@@ -2596,5 +2608,803 @@ button.date-day-cell {
   .file-action-bar button {
     min-height: 56px !important;
     font-size: 0.98rem !important;
+  }
+}
+
+/* Final alignment pass: stable tab bar, centered main visuals, no jump on tab changes. */
+html,
+body {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+body {
+  padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.tabs {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: max(8px, env(safe-area-inset-bottom, 8px)) !important;
+  z-index: 80 !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: min(760px, calc(100vw - 18px)) !important;
+  max-width: calc(100vw - 18px) !important;
+  min-height: 84px !important;
+  margin: 0 !important;
+  padding: 7px 8px !important;
+  transform: translateX(-50%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.86) !important;
+  border-radius: 24px !important;
+  background: rgba(255, 251, 255, 0.92) !important;
+  box-shadow: 0 14px 34px rgba(113, 61, 163, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(18px) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none !important;
+}
+
+.tab-button,
+.tab-button.active,
+.tab-button.opening,
+.tab-button:active {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  min-height: 68px !important;
+  height: 68px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  overflow: visible !important;
+}
+
+.tab-button::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 6px 5px 4px !important;
+  border-radius: 17px !important;
+  background: rgba(250, 236, 255, 0.78) !important;
+  opacity: 0 !important;
+  transform: none !important;
+  transition: opacity 160ms ease, box-shadow 160ms ease !important;
+}
+
+.tab-button.active::before {
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: 0 0 20px rgba(177, 121, 255, 0.34) !important;
+}
+
+.tab-icon,
+.tab-button.active .tab-icon,
+.tab-button.opening .tab-icon,
+.tab-button:active .tab-icon {
+  position: relative !important;
+  z-index: 1 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 62px !important;
+  margin: 0 auto !important;
+  border-radius: 0 !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  transform: none !important;
+  filter: drop-shadow(0 7px 11px rgba(114, 62, 169, 0.16)) !important;
+}
+
+.tab-button[data-tab="fridge"] .tab-icon {
+  background-image: url("assets/ui/tab-fridge.png") !important;
+}
+
+.tab-button[data-tab="clothes"] .tab-icon {
+  background-image: url("assets/ui/tab-clothes.png") !important;
+}
+
+.tab-button[data-tab="dates"] .tab-icon {
+  background-image: url("assets/ui/tab-dates.png") !important;
+}
+
+.tab-button[data-tab="storage"] .tab-icon {
+  background-image: url("assets/ui/tab-storage.png") !important;
+}
+
+.tab-button[data-tab="restock"] .tab-icon {
+  background-image: url("assets/ui/tab-restock.png") !important;
+}
+
+.tab-button > span:not(.tab-icon),
+.tab-label {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+}
+
+#tab-fridge .fridge-scene.main-open .scene-visual,
+#tab-fridge .fridge-scene.main-open .photo-fridge-button.fridge-visual.furniture-piece,
+#tab-fridge .fridge-scene.main-open .photo-fridge-button .fridge-photo-stage,
+#tab-fridge .fridge-scene.main-open .photo-fridge-button .fridge-image-stack {
+  overflow: hidden !important;
+}
+
+#tab-fridge .fridge-scene.main-open .fridge-photo-open {
+  object-fit: cover !important;
+  object-position: center top !important;
+}
+
+#tab-dates .cheese-clock-button {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+#tab-dates .cheese-clock-wrap.date-photo-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  border-radius: 28px !important;
+}
+
+#tab-dates .date-photo {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  border-radius: 28px !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  transition: opacity 320ms ease, transform 420ms ease !important;
+}
+
+#tab-dates .date-photo-open {
+  opacity: 0 !important;
+  transform: scale(0.985) !important;
+}
+
+#tab-dates .cheese-clock-button.door-open .date-photo-closed {
+  opacity: 0 !important;
+  transform: scale(1.015) !important;
+}
+
+#tab-dates .cheese-clock-button.door-open .date-photo-open {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+@media (max-width: 760px) {
+  body {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .tabs {
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
+    min-height: 76px !important;
+    padding: 6px 4px !important;
+    gap: 2px !important;
+    border-radius: 22px 22px 0 0 !important;
+  }
+
+  .tab-button,
+  .tab-button.active,
+  .tab-button.opening,
+  .tab-button:active {
+    min-height: 62px !important;
+    height: 62px !important;
+    border-radius: 16px !important;
+  }
+
+  .tab-button::before {
+    inset: 4px 2px 2px !important;
+    border-radius: 15px !important;
+  }
+
+  .tab-icon,
+  .tab-button.active .tab-icon,
+  .tab-button.opening .tab-icon,
+  .tab-button:active .tab-icon {
+    width: 64px !important;
+    height: 58px !important;
+    flex: 0 0 64px !important;
+    transform: none !important;
+    opacity: 1 !important;
+    background-size: 58px auto !important;
+  }
+
+  #tab-fridge .fridge-scene.main-open {
+    width: 100vw !important;
+    margin-inline: calc(50% - 50vw) !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #tab-fridge .fridge-scene.main-open .scene-visual,
+  #tab-fridge .fridge-scene.main-open .photo-fridge-button.fridge-visual.furniture-piece,
+  #tab-fridge .fridge-scene.main-open .photo-fridge-button .fridge-photo-stage,
+  #tab-fridge .fridge-scene.main-open .photo-fridge-button .fridge-image-stack {
+    width: 100vw !important;
+    height: calc(100svh - 92px) !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #tab-fridge .fridge-scene.main-open .fridge-photo {
+    border-radius: 0 !important;
+  }
+
+  #tab-fridge .fridge-scene.main-open .fridge-photo-open {
+    object-fit: cover !important;
+    object-position: center top !important;
+  }
+
+  #tab-clothes .closet-scene,
+  #tab-clothes .closet-scene:not(.main-open),
+  #tab-clothes .closet-scene.main-open {
+    width: 100vw !important;
+    max-width: none !important;
+    margin-inline: calc(50% - 50vw) !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    display: grid !important;
+    place-items: center !important;
+  }
+
+  #tab-clothes .closet-scene:not(.main-open) .scene-visual,
+  #tab-clothes .closet-scene.main-open .scene-visual {
+    width: 100vw !important;
+    max-width: none !important;
+    height: calc(100svh - 92px) !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    margin: 0 auto !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  #tab-clothes .photo-closet-button.closet-visual.furniture-piece,
+  #tab-clothes .photo-closet-button .closet-photo-stage,
+  #tab-clothes .photo-closet-button .closet-photo {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  #tab-clothes .photo-closet-button .closet-photo {
+    object-fit: cover !important;
+    object-position: center center !important;
+  }
+
+  #tab-clothes .closet-scene.main-open .closet-helper-panel {
+    width: calc(100vw - 20px) !important;
+    margin: 12px auto 0 !important;
+  }
+
+  #tab-dates .reminder-scene .scene-visual {
+    width: 100vw !important;
+    max-width: none !important;
+    height: calc(100svh - 92px) !important;
+    aspect-ratio: auto !important;
+    left: auto !important;
+    right: auto !important;
+    justify-self: center !important;
+    margin: 0 auto !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #tab-dates .cheese-clock-wrap.date-photo-stage,
+  #tab-dates .date-photo {
+    border-radius: 0 !important;
+  }
+}
+
+/* Current fridge polish: unlimited fridge, no tip card, vertical actions. */
+.home-hero-card .hero-copy h2 {
+  display: inline-block !important;
+  max-width: min(900px, 92vw) !important;
+  padding: 0.12em 0.22em !important;
+  color: transparent !important;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fff7ff 30%, #ffe7ff 58%, #7a35d8 59%, #5520a8 100%),
+    linear-gradient(90deg, #fff7ff, #c58cff, #ffb7df, #fff0ff) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-stroke: 1.5px rgba(82, 34, 151, 0.88) !important;
+  text-shadow:
+    0 3px 0 rgba(255, 255, 255, 0.95),
+    0 8px 18px rgba(115, 59, 205, 0.28),
+    0 0 24px rgba(255, 216, 250, 0.96) !important;
+}
+
+#tab-fridge .fridge-tip-card,
+#tab-fridge .fridge-progress {
+  display: none !important;
+}
+
+#tab-fridge .fridge-capacity.fridge-capacity-unlimited {
+  justify-content: flex-start !important;
+  align-items: baseline !important;
+  gap: 10px !important;
+  margin: 6px 0 4px !important;
+}
+
+#tab-fridge .fridge-capacity.fridge-capacity-unlimited b {
+  color: #ef6f76 !important;
+  font-size: clamp(2.4rem, 4.5vw, 4.2rem) !important;
+  line-height: 1 !important;
+}
+
+#tab-fridge .fridge-capacity.fridge-capacity-unlimited span {
+  color: #6f4631 !important;
+  font-size: clamp(1rem, 1.5vw, 1.25rem) !important;
+  font-weight: 950 !important;
+}
+
+#tab-fridge .fridge-scene,
+#tab-fridge .fridge-scene.main-open {
+  position: relative !important;
+}
+
+#tab-fridge .fridge-scene .fridge-action-bar,
+#tab-fridge .fridge-scene:not(.main-open) .fridge-action-bar,
+#tab-fridge .fridge-scene.main-open .fridge-action-bar {
+  position: absolute !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 118px !important;
+  z-index: 40 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  width: min(430px, calc(100vw - 48px)) !important;
+  max-width: 40% !important;
+  min-height: 0 !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: translateX(-50%) !important;
+  pointer-events: auto !important;
+}
+
+#tab-fridge .fridge-scene .fridge-action-bar .fridge-add-button,
+#tab-fridge .fridge-scene .fridge-action-bar .fridge-organize-button {
+  width: 100% !important;
+  border-radius: 999px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+
+#tab-fridge .fridge-scene .fridge-action-bar .fridge-add-button {
+  min-height: 78px !important;
+  font-size: clamp(1.45rem, 2.5vw, 2.25rem) !important;
+  box-shadow: 0 18px 34px rgba(218, 133, 37, 0.24) !important;
+}
+
+#tab-fridge .fridge-scene .fridge-action-bar .fridge-organize-button {
+  min-height: 60px !important;
+  font-size: clamp(1.1rem, 1.7vw, 1.45rem) !important;
+  box-shadow: 0 14px 28px rgba(227, 105, 119, 0.2) !important;
+}
+
+@media (max-width: 900px) {
+  #tab-fridge .fridge-scene .fridge-action-bar,
+  #tab-fridge .fridge-scene:not(.main-open) .fridge-action-bar,
+  #tab-fridge .fridge-scene.main-open .fridge-action-bar {
+    max-width: none !important;
+    width: min(420px, calc(100vw - 36px)) !important;
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 10px !important;
+  }
+
+  #tab-fridge .fridge-scene .fridge-action-bar .fridge-add-button {
+    min-height: 70px !important;
+    font-size: 1.48rem !important;
+  }
+
+  #tab-fridge .fridge-scene .fridge-action-bar .fridge-organize-button {
+    min-height: 56px !important;
+    font-size: 1.14rem !important;
+  }
+}
+
+/* Restock page: warm inventory board, using the supplied closed/open artwork. */
+#tab-restock {
+  --restock-cream: #fff8f2;
+  --restock-card: rgba(255, 251, 247, 0.94);
+  --restock-line: rgba(232, 172, 158, 0.32);
+  --restock-pink: #ff8ea2;
+  --restock-yellow: #ffd774;
+  --restock-text: #4f3327;
+}
+
+#tab-restock .section-heading,
+#tab-restock .restock-filter-row,
+#tab-restock .pantry-scene,
+#tab-restock .restock-action-bar,
+#tab-restock .restock-work-grid {
+  width: min(1180px, calc(100vw - 48px)) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+#tab-restock .section-heading {
+  margin-bottom: 14px !important;
+}
+
+#tab-restock .restock-filter-row {
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+}
+
+#tab-restock .restock-filter-row button {
+  min-width: 84px !important;
+  border: 1px solid rgba(232, 172, 158, 0.42) !important;
+  border-radius: 999px !important;
+  background: #fff8fb !important;
+  color: #8a4b8f !important;
+  box-shadow: 0 10px 22px rgba(214, 138, 162, 0.12) !important;
+}
+
+#tab-restock .restock-filter-row button.active {
+  background: linear-gradient(135deg, #fff5cf, #ffe4ec) !important;
+  color: var(--restock-text) !important;
+}
+
+#tab-restock .pantry-scene {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 7fr) minmax(250px, 3fr) !important;
+  gap: clamp(18px, 2.4vw, 28px) !important;
+  align-items: start !important;
+  padding: clamp(18px, 2.4vw, 28px) !important;
+  border: 1px solid var(--restock-line) !important;
+  border-radius: 30px !important;
+  background: linear-gradient(145deg, #fffdf9 0%, #fff4ed 100%) !important;
+  box-shadow: 0 22px 48px rgba(196, 118, 95, 0.13) !important;
+  overflow: visible !important;
+}
+
+#tab-restock .pantry-scene::before,
+#tab-restock .pantry-scene::after,
+#tab-restock .pantry-scene .scene-visual::after,
+#tab-restock .pantry-state-badge {
+  display: none !important;
+}
+
+#tab-restock .pantry-scene .scene-visual {
+  width: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+#tab-restock .photo-pantry-button {
+  width: min(100%, 620px) !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+#tab-restock .photo-pantry-button .pantry-photo-stage {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 2 / 3 !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: #fff7f0 !important;
+  box-shadow: 0 18px 40px rgba(181, 112, 90, 0.14) !important;
+}
+
+#tab-restock .photo-pantry-button .pantry-photo {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: inherit !important;
+  transition: opacity 360ms ease, transform 460ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+#tab-restock .photo-pantry-button .pantry-photo-closed {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+#tab-restock .photo-pantry-button .pantry-photo-open {
+  opacity: 0 !important;
+  transform: scale(0.985) !important;
+}
+
+#tab-restock .photo-pantry-button.door-open .pantry-photo-closed {
+  opacity: 0 !important;
+  transform: scale(1.015) !important;
+}
+
+#tab-restock .photo-pantry-button.door-open .pantry-photo-open {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+#tab-restock .restock-summary-card {
+  align-self: start !important;
+  display: grid !important;
+  gap: 10px !important;
+  padding: 20px !important;
+  border: 1px solid rgba(238, 169, 154, 0.36) !important;
+  border-radius: 24px !important;
+  background: var(--restock-card) !important;
+  box-shadow: 0 16px 34px rgba(202, 129, 109, 0.12) !important;
+  color: var(--restock-text) !important;
+}
+
+#tab-restock .restock-summary-card span {
+  color: #b67564 !important;
+  font-size: 0.92rem !important;
+  font-weight: 900 !important;
+}
+
+#tab-restock .restock-summary-card strong {
+  font-size: clamp(1.18rem, 2vw, 1.6rem) !important;
+  line-height: 1.2 !important;
+}
+
+#tab-restock .restock-summary-card b {
+  color: #ef646d !important;
+  font-size: clamp(2.2rem, 4vw, 3.5rem) !important;
+  line-height: 1 !important;
+}
+
+#tab-restock .restock-summary-card em {
+  color: #9a7668 !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+}
+
+#tab-restock .restock-action-bar {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin-top: 18px !important;
+  margin-bottom: 22px !important;
+}
+
+#tab-restock .restock-action-bar button {
+  min-width: min(300px, calc((100vw - 76px) / 2)) !important;
+  min-height: 64px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  color: #6f4428 !important;
+  font-size: clamp(1.08rem, 2vw, 1.45rem) !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  box-shadow: 0 14px 26px rgba(210, 129, 84, 0.18) !important;
+}
+
+#tab-restock .restock-add-button {
+  background: linear-gradient(135deg, #ffe186, #fff0b8) !important;
+}
+
+#tab-restock .restock-organize-button {
+  background: linear-gradient(135deg, #ff9dac, #ffd0d8) !important;
+}
+
+#tab-restock .restock-work-grid {
+  align-items: start !important;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr) !important;
+  margin-bottom: 120px !important;
+}
+
+#tab-restock .restock-stock-card {
+  border-color: rgba(226, 174, 160, 0.38) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+#tab-restock .restock-card-main {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: center !important;
+}
+
+#tab-restock .restock-item-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 16px !important;
+  background: #fff1f4 !important;
+  font-size: 1.45rem !important;
+  box-shadow: inset 0 -6px 12px rgba(239, 179, 179, 0.22) !important;
+}
+
+#tab-restock .restock-card-main h4,
+#tab-restock .restock-card-main p {
+  margin: 0 !important;
+}
+
+#tab-restock .restock-card-main p {
+  color: #7d665c !important;
+  font-weight: 800 !important;
+}
+
+#tab-restock .restock-danger {
+  box-shadow: inset 5px 0 0 #ff6f7d, 0 12px 24px rgba(255, 111, 125, 0.08) !important;
+}
+
+#tab-restock .restock-warn {
+  box-shadow: inset 5px 0 0 #f4bd3f, 0 12px 24px rgba(244, 189, 63, 0.08) !important;
+}
+
+#tab-restock .restock-good {
+  box-shadow: inset 5px 0 0 #85c886, 0 12px 24px rgba(133, 200, 134, 0.08) !important;
+}
+
+#tab-restock .restock-empty-state {
+  min-height: 220px !important;
+  border: 1px dashed rgba(230, 164, 151, 0.55) !important;
+  border-radius: 24px !important;
+  background: linear-gradient(145deg, #fffdf9, #fff3f5) !important;
+}
+
+#tab-restock .restock-empty-icon {
+  font-size: 3rem !important;
+}
+
+@media (max-width: 900px) {
+  #tab-restock .section-heading,
+  #tab-restock .restock-filter-row,
+  #tab-restock .pantry-scene,
+  #tab-restock .restock-action-bar,
+  #tab-restock .restock-work-grid {
+    width: min(100vw - 24px, 620px) !important;
+  }
+
+  #tab-restock .pantry-scene {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    padding: 0 0 18px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #tab-restock .photo-pantry-button {
+    width: 100% !important;
+    max-width: 560px !important;
+  }
+
+  #tab-restock .photo-pantry-button .pantry-photo-stage {
+    border-radius: 24px !important;
+  }
+
+  #tab-restock .restock-summary-card {
+    margin: 0 4px !important;
+  }
+
+  #tab-restock .restock-action-bar {
+    gap: 12px !important;
+  }
+
+  #tab-restock .restock-action-bar button {
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+    min-height: 58px !important;
+    font-size: 1.05rem !important;
+  }
+
+  #tab-restock .restock-work-grid {
+    grid-template-columns: 1fr !important;
+    margin-bottom: 150px !important;
+  }
+
+  #tab-restock .restock-card-main {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+
+  #tab-restock .restock-card-main .tag {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+  }
+}
+
+/* Latest requested fridge polish. */
+#tab-fridge .fridge-scene:not(.main-open) .fridge-dashboard,
+#tab-fridge .fridge-scene:not(.main-open) .fridge-action-bar,
+#tab-fridge .fridge-scene:not(.main-open) .fridge-food-overlay,
+#tab-fridge .fridge-scene:not(.main-open) .scene-copy,
+#tab-fridge .fridge-scene:not(.main-open) .scene-items,
+#tab-fridge .fridge-scene:not(.main-open) .scene-clear-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+#tab-fridge .fridge-scene .fridge-action-bar,
+#tab-fridge .fridge-scene.main-open .fridge-action-bar {
+  bottom: 84px !important;
+  width: min(430px, calc(100vw - 48px)) !important;
+  gap: 12px !important;
+}
+
+#tab-fridge .fridge-scene .fridge-action-bar .fridge-add-button,
+#tab-fridge .fridge-scene .fridge-action-bar .fridge-organize-button {
+  min-height: 64px !important;
+  font-size: clamp(1.18rem, 2vw, 1.48rem) !important;
+  line-height: 1.12 !important;
+  color: #6d3d2a !important;
+  background: linear-gradient(180deg, #ffe3a5, #ffc75d) !important;
+  box-shadow: 0 14px 28px rgba(205, 122, 91, 0.16), inset 0 -3px 0 rgba(129, 74, 30, 0.08) !important;
+}
+
+#tab-fridge .fridge-scene .fridge-action-bar .fridge-organize-button {
+  color: #7f3442 !important;
+  background: linear-gradient(180deg, #ffd9df, #ff9fae) !important;
+}
+
+@media (max-width: 900px) {
+  #tab-fridge .fridge-scene .fridge-action-bar,
+  #tab-fridge .fridge-scene.main-open .fridge-action-bar {
+    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+    width: min(400px, calc(100vw - 36px)) !important;
+  }
+
+  #tab-fridge .fridge-scene .fridge-action-bar .fridge-add-button,
+  #tab-fridge .fridge-scene .fridge-action-bar .fridge-organize-button {
+    min-height: 60px !important;
+    font-size: 1.22rem !important;
   }
 }

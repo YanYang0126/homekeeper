@@ -75,6 +75,7 @@ function init() {
   useRealClosetImages();
   ensureClosetExperience();
   ensureDatesExperience();
+  useRealDateImages();
   useRealFileImages();
   ensureFileExperience();
   updateReminderButton();
@@ -108,7 +109,7 @@ function ensureFridgeExperience() {
           <div class="fridge-open-shell">
             <div class="fridge-live-top">
               <span>保鲜区</span>
-              <b id="fridgeLiveCount">0/80</b>
+              <b id="fridgeLiveCount">0</b>
             </div>
             <div class="fridge-live-shelves" id="fridgePreviewGrid"></div>
           </div>
@@ -123,7 +124,7 @@ function ensureFridgeExperience() {
       "beforeend",
       `
         <div class="fridge-action-bar">
-          <button class="fridge-add-button" type="button" data-fridge-add>+ 添加食材</button>
+          <button class="fridge-add-button" type="button" data-fridge-add>添加食材</button>
           <button class="fridge-organize-button" type="button" data-fridge-organize>整理冰箱</button>
         </div>
       `
@@ -141,16 +142,14 @@ function ensureFridgeExperience() {
               <button class="fridge-panel-title" type="button" data-fridge-add>我的冰箱</button>
               <button class="fridge-icon-button" type="button" data-fridge-add aria-label="添加食材">✎</button>
             </div>
-            <div class="fridge-capacity">
-              <b id="fridgeOverviewCapacity">0/80</b>
-              <span id="fridgeOverviewPercent">0%</span>
+            <div class="fridge-capacity fridge-capacity-unlimited">
+              <b id="fridgeOverviewCapacity">0</b>
+              <span>件食材</span>
             </div>
-            <div class="fridge-progress"><i id="fridgeOverviewBar"></i></div>
             <dl class="fridge-stats">
               <div><dt>物品总数</dt><dd><span id="fridgeOverviewTotal">0</span> 个</dd></div>
               <div><dt>快过期（3天内）</dt><dd><span id="fridgeOverviewSoon">0</span> 件</dd></div>
               <div><dt>已过期</dt><dd><span id="fridgeOverviewExpired">0</span> 件</dd></div>
-              <div><dt>剩余空间</dt><dd><span id="fridgeOverviewSpace">80</span> 格</dd></div>
             </dl>
           </section>
           <section class="fridge-widget">
@@ -159,13 +158,6 @@ function ensureFridgeExperience() {
               <button class="fridge-icon-button" type="button" data-fridge-organize aria-label="整理冰箱">›</button>
             </div>
             <div class="fridge-today-list" id="fridgeTodayList"></div>
-          </section>
-          <section class="fridge-widget fridge-tip-card">
-            <div class="fridge-widget-title">
-              <span>冰箱小贴士</span>
-              <i aria-hidden="true">🐾</i>
-            </div>
-            <p id="fridgeTipText">添加食材后，这里会自动给出整理建议。</p>
           </section>
         </aside>
       `
@@ -181,8 +173,8 @@ function useRealFridgeImages() {
     stage.dataset.realFridgeReady = "true";
     stage.innerHTML = `
       <div class="fridge-image-stack">
-        <img class="fridge-photo fridge-photo-closed" src="assets/main/fridge-closed.jpg" alt="" loading="eager" />
-        <img class="fridge-photo fridge-photo-open" src="assets/main/fridge-open.jpg" alt="" loading="eager" />
+        <img class="fridge-photo fridge-photo-closed" src="assets/main/fridge-closed.png?v=40" alt="" loading="eager" />
+        <img class="fridge-photo fridge-photo-open" src="assets/main/fridge-open.jpg?v=40" alt="" loading="eager" />
         <div class="fridge-food-overlay" id="fridgePreviewGrid" aria-label="冰箱里的食材"></div>
       </div>
     `;
@@ -196,7 +188,7 @@ function useRealFridgeImages() {
   }
   if (actionBar) {
     actionBar.innerHTML = `
-      <button class="fridge-add-button" type="button" data-fridge-add>+ 添加食材</button>
+      <button class="fridge-add-button" type="button" data-fridge-add>添加食材</button>
       <button class="fridge-organize-button" type="button" data-fridge-organize>整理冰箱</button>
     `;
   }
@@ -212,16 +204,14 @@ function useRealFridgeImages() {
           <button class="fridge-panel-title" type="button" data-fridge-overview>我的冰箱</button>
           <button class="fridge-icon-button" type="button" data-fridge-add aria-label="添加食材">✎</button>
         </div>
-        <div class="fridge-capacity">
-          <b id="fridgeOverviewCapacity">0/80</b>
-          <span id="fridgeOverviewPercent">0%</span>
+        <div class="fridge-capacity fridge-capacity-unlimited">
+          <b id="fridgeOverviewCapacity">0</b>
+          <span>件食材</span>
         </div>
-        <div class="fridge-progress"><i id="fridgeOverviewBar"></i></div>
         <dl class="fridge-stats">
           <div><dt>物品总数</dt><dd><span id="fridgeOverviewTotal">0</span> 个</dd></div>
           <div><dt>快过期（3天内）</dt><dd><span id="fridgeOverviewSoon">0</span> 件</dd></div>
           <div><dt>已过期</dt><dd><span id="fridgeOverviewExpired">0</span> 件</dd></div>
-          <div><dt>剩余空间</dt><dd><span id="fridgeOverviewSpace">80</span> 格</dd></div>
         </dl>
       </section>
       <section class="fridge-widget fridge-today-card">
@@ -230,13 +220,6 @@ function useRealFridgeImages() {
           <button class="fridge-icon-button" type="button" data-fridge-organize aria-label="整理冰箱">›</button>
         </div>
         <div class="fridge-today-list" id="fridgeTodayList"></div>
-      </section>
-      <section class="fridge-widget fridge-tip-card">
-        <div class="fridge-widget-title">
-          <button class="fridge-panel-title" type="button" data-fridge-tip>冰箱小贴士</button>
-          <i aria-hidden="true">🐾</i>
-        </div>
-        <p id="fridgeTipText">添加食材后，这里会自动给出整理建议。</p>
       </section>
     `;
   }
@@ -266,6 +249,18 @@ function useRealFileImages() {
       <div class="file-category-overlay" id="fileCategoryOverlay" aria-label="文件分类"></div>
     `;
   }
+}
+
+function useRealDateImages() {
+  const button = $("#tab-dates .cheese-clock-button");
+  if (!button || button.dataset.realDateReady === "true") return;
+  button.dataset.realDateReady = "true";
+  button.innerHTML = `
+    <span class="cheese-clock-wrap date-photo-stage" aria-hidden="true">
+      <img class="cheese-clock-image date-photo date-photo-closed" src="assets/main/date-clock.jpg?v=40" alt="" loading="eager" />
+      <img class="cheese-clock-image date-photo date-photo-open" src="assets/main/date-board.jpg?v=40" alt="" loading="eager" />
+    </span>
+  `;
 }
 
 function ensureClosetExperience() {
@@ -576,7 +571,7 @@ function bindButtons() {
   $("#clearClothesForm").addEventListener("click", () => resetAndShowMain("clothes", resetClothesForm));
   $("#clearDateForm").addEventListener("click", () => resetAndShowMain("dates", resetDateForm));
   $("#clearStorageForm").addEventListener("click", () => resetAndShowMain("storage", resetStorageForm));
-  $("#clearRestockForm").addEventListener("click", () => resetAndShowMain("restock", resetRestockForm));
+  $("#clearRestockForm")?.addEventListener("click", () => resetAndShowMain("restock", resetRestockForm));
   $("#exportClothesImageButton").addEventListener("click", exportClothesImage);
   $("#exportCalendarButton").addEventListener("click", exportCalendarFile);
   $("#notifyButton").addEventListener("click", toggleNotifications);
@@ -591,9 +586,11 @@ function bindButtons() {
     const closetFormButton = event.target.closest("[data-closet-form]");
     const furnitureButton = event.target.closest("[data-furniture]");
     const restockPreset = event.target.closest("[data-restock-preset]");
+    const restockAddButton = event.target.closest("[data-restock-add]");
+    const restockOrganizeButton = event.target.closest("[data-restock-organize]");
     const fridgeAddButton = event.target.closest("[data-fridge-add]");
     const fridgeOrganizeButton = event.target.closest("[data-fridge-organize]");
-    const fridgePanelButton = event.target.closest("[data-fridge-overview], [data-fridge-today], [data-fridge-tip]");
+    const fridgePanelButton = event.target.closest("[data-fridge-overview], [data-fridge-today]");
     const outfitPickButton = event.target.closest("[data-outfit-pick]");
     const outfitRemoveButton = event.target.closest("[data-outfit-remove]");
     const outfitSaveButton = event.target.closest("[data-outfit-save]");
@@ -634,8 +631,6 @@ function bindButtons() {
     if (fridgePanelButton) {
       if (fridgePanelButton.hasAttribute("data-fridge-today")) {
         openFridgePanel("today");
-      } else if (fridgePanelButton.hasAttribute("data-fridge-tip")) {
-        openFridgePanel("tip");
       } else {
         openFridgePanel("overview");
       }
@@ -742,6 +737,16 @@ function bindButtons() {
 
     if (restockPreset) {
       fillRestockPreset(restockPreset);
+      return;
+    }
+
+    if (restockAddButton) {
+      focusRestockForm();
+      return;
+    }
+
+    if (restockOrganizeButton) {
+      organizeRestock();
       return;
     }
 
@@ -873,7 +878,7 @@ function focusMainVisual(tabName) {
   const activeSection = $(`#tab-${tabName}`);
   if (!activeSection) return;
   const target = $(".scene-visual", activeSection) || activeSection;
-  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  target.scrollIntoView({ behavior: "auto", block: "start", inline: "center" });
 }
 
 function closeSceneFurniture(tabName) {
@@ -938,6 +943,14 @@ function ensureFileOpen() {
   return cabinetButton;
 }
 
+function ensurePantryOpen() {
+  const pantryButton = $('[data-furniture="pantry"]');
+  if (pantryButton && !pantryButton.classList.contains("door-open")) {
+    toggleFurnitureDoor(pantryButton);
+  }
+  return pantryButton;
+}
+
 function focusClothesForm() {
   setActiveTab("clothes");
   ensureClosetOpen();
@@ -958,6 +971,14 @@ function focusStorageForm(type = "") {
   window.setTimeout(() => nameField?.focus(), 260);
 }
 
+function focusRestockForm() {
+  setActiveTab("restock");
+  ensurePantryOpen();
+  const nameField = elements.restockForm.elements.name;
+  elements.restockForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  window.setTimeout(() => nameField?.focus(), 260);
+}
+
 function openFridgePanel(panel) {
   setActiveTab("fridge");
   ensureFridgeOpen();
@@ -966,13 +987,11 @@ function openFridgePanel(panel) {
   const panelMap = {
     overview: [".fridge-overview-card", "我的冰箱已打开"],
     today: [".fridge-today-list", "今日提醒已打开"],
-    tip: [".fridge-tip-card", "冰箱小贴士已打开"],
   };
   const [selector, fallbackMessage] = panelMap[panel] || panelMap.overview;
   const message = {
     overview: "\u6211\u7684\u51b0\u7bb1\u5df2\u6253\u5f00",
     today: "\u4eca\u65e5\u63d0\u9192\u5df2\u6253\u5f00",
-    tip: "\u51b0\u7bb1\u5c0f\u8d34\u58eb\u5df2\u6253\u5f00",
   }[panel] || fallbackMessage;
   const target = $(selector);
   if (target) {
@@ -1009,6 +1028,21 @@ function organizeFiles() {
   ensureFileOpen();
   focusMainVisual("storage");
   showFridgeToast("文件已按分类整理");
+}
+
+function organizeRestock() {
+  state.restock.sort((a, b) => {
+    const byRank = getRestockRank(a) - getRestockRank(b);
+    if (byRank !== 0) return byRank;
+    const byStock = getRestockStockCount(a) - getRestockStockCount(b);
+    if (Number.isFinite(byStock) && byStock !== 0) return byStock;
+    return String(a.name || "").localeCompare(String(b.name || ""), "zh-Hans-CN");
+  });
+  if (!saveData()) return;
+  render();
+  ensurePantryOpen();
+  focusMainVisual("restock");
+  showFridgeToast("已按库存状态整理");
 }
 
 async function handleClothesSubmit(event) {
@@ -1094,6 +1128,8 @@ function handleRestockSubmit(event) {
   if (saveData()) {
     resetRestockForm();
     render();
+    ensurePantryOpen();
+    focusMainVisual("restock");
   }
 }
 
@@ -1228,7 +1264,6 @@ function renderFridge() {
 }
 
 function renderFridgeDashboard(items) {
-  const capacity = 80;
   const records = items.map((item) => {
     const expiry = expiryDate(item);
     const diff = expiry ? daysUntil(expiry) : Number.NaN;
@@ -1236,17 +1271,12 @@ function renderFridgeDashboard(items) {
   });
   const expired = records.filter((entry) => Number.isFinite(entry.diff) && entry.diff < 0);
   const soon = records.filter((entry) => Number.isFinite(entry.diff) && entry.diff >= 0 && entry.diff <= 3);
-  const percent = Math.min(100, Math.round((items.length / capacity) * 100));
 
-  setText($("#fridgeLiveCount"), `${items.length}/${capacity}`);
-  setText($("#fridgeOverviewCapacity"), `${items.length}/${capacity}`);
-  setText($("#fridgeOverviewPercent"), `${percent}%`);
+  setText($("#fridgeLiveCount"), items.length);
+  setText($("#fridgeOverviewCapacity"), items.length);
   setText($("#fridgeOverviewTotal"), items.length);
   setText($("#fridgeOverviewSoon"), soon.length);
   setText($("#fridgeOverviewExpired"), expired.length);
-  setText($("#fridgeOverviewSpace"), Math.max(0, capacity - items.length));
-  const bar = $("#fridgeOverviewBar");
-  if (bar) bar.style.width = `${percent}%`;
 
   const previewGrid = $("#fridgePreviewGrid");
   if (previewGrid) {
@@ -1287,19 +1317,6 @@ function renderFridgeDashboard(items) {
           `)
           .join("")
       : `<div class="fridge-reminder-empty">今天没有需要特别处理的食材。</div>`;
-  }
-
-  const tip = $("#fridgeTipText");
-  if (tip) {
-    let text = "冰箱状态不错，常用食材放在视线最前面，会更容易记得吃。";
-    if (!items.length) {
-      text = "先添加牛奶、鸡蛋、蔬菜和水果，冰箱会自动帮你排队显示。";
-    } else if (expired.length) {
-      text = `有 ${expired.length} 个食材已经过期，建议今天先清理，再补充新鲜食材。`;
-    } else if (soon.length) {
-      text = `有 ${soon.length} 个食材 3 天内到期，适合放到最前排优先吃。`;
-    }
-    tip.textContent = text;
   }
 }
 
@@ -1975,10 +1992,18 @@ function renderRestock() {
   const list = filterBySearch(state.restock)
     .slice()
     .sort((a, b) => getRestockRank(a) - getRestockRank(b));
+  const neededCount = state.restock.filter(isRestockNeeded).length;
 
+  setText($("#restockNeedCount"), `${neededCount} 件`);
   $("#restockListMeta").textContent = `${list.length} 项`;
   if (!list.length) {
-    renderEmpty(elements.restockList, "还没有补货记录");
+    elements.restockList.innerHTML = `
+      <div class="empty-state restock-empty-state">
+        <span class="restock-empty-icon" aria-hidden="true">🛒</span>
+        <strong>还没有记录任何家庭库存哦～</strong>
+        <span>快添加你的第一个补货物品吧！</span>
+      </div>
+    `;
     return;
   }
 
@@ -1986,14 +2011,17 @@ function renderRestock() {
     .map((item) => {
       const status = getRestockStatus(item);
       return `
-        <article class="item-card" data-item-kind="restock" data-item-id="${escapeAttr(item.id)}">
-          <div class="card-top">
-            <h4>${escapeHtml(item.name)}</h4>
+        <article class="item-card restock-stock-card restock-${status.level}" data-item-kind="restock" data-item-id="${escapeAttr(item.id)}">
+          <div class="restock-card-main">
+            <span class="restock-item-icon" aria-hidden="true">${escapeHtml(getRestockIcon(item))}</span>
+            <div>
+              <h4>${escapeHtml(item.name)}</h4>
+              <p>剩余 ${escapeHtml(item.stock || "未填写")}</p>
+            </div>
             <span class="tag ${status.className}">${escapeHtml(status.text)}</span>
           </div>
           ${compactMeta([
             item.category || "其他",
-            item.stock ? `库存 ${item.stock}` : "未填库存",
             item.place ? `位置 ${item.place}` : ""
           ])}
           ${cardActions("restock", item.id)}
@@ -2162,9 +2190,16 @@ function getDateStatus(item) {
 
 function getRestockStatus(item) {
   const stockCount = getRestockStockCount(item);
+  const isPercent = String(item.stock || "").includes("%");
   if (Number.isFinite(stockCount)) {
-    if (stockCount < 2) return { text: "少于 2，需补货", className: "danger", level: "danger" };
-    return { text: "库存够用", className: "good", level: "good" };
+    if (isPercent) {
+      if (stockCount <= 20) return { text: "需要补货", className: "danger", level: "danger" };
+      if (stockCount <= 50) return { text: "库存较少", className: "warn", level: "warn" };
+      return { text: "库存充足", className: "good", level: "good" };
+    }
+    if (stockCount < 2) return { text: "需要补货", className: "danger", level: "danger" };
+    if (stockCount <= 2) return { text: "库存较少", className: "warn", level: "warn" };
+    return { text: "库存充足", className: "good", level: "good" };
   }
   if (item.status === "已备足") return { text: "已备足", className: "good", level: "good" };
   if (item.status === "下次再看") return { text: "下次再看", className: "blue", level: "blue" };
@@ -2174,13 +2209,25 @@ function getRestockStatus(item) {
 
 function isRestockNeeded(item) {
   const stockCount = getRestockStockCount(item);
-  if (Number.isFinite(stockCount)) return stockCount < 2;
+  if (Number.isFinite(stockCount)) {
+    if (String(item.stock || "").includes("%")) return stockCount <= 20;
+    return stockCount < 2;
+  }
   return item.status === "需要补货" || item.status === "库存偏低" || !item.status;
 }
 
 function getRestockRank(item) {
   const stockCount = getRestockStockCount(item);
-  if (Number.isFinite(stockCount)) return stockCount < 2 ? 0 : 3;
+  if (Number.isFinite(stockCount)) {
+    if (String(item.stock || "").includes("%")) {
+      if (stockCount <= 20) return 0;
+      if (stockCount <= 50) return 1;
+      return 3;
+    }
+    if (stockCount < 2) return 0;
+    if (stockCount <= 2) return 1;
+    return 3;
+  }
   const ranks = {
     需要补货: 0,
     库存偏低: 1,
@@ -2196,6 +2243,17 @@ function getRestockStockCount(item) {
   );
   const match = text.match(/\d+(?:\.\d+)?/);
   return match ? Number(match[0]) : Number.NaN;
+}
+
+function getRestockIcon(item) {
+  const text = `${item.name || ""} ${item.category || ""}`;
+  if (/猫粮|猫砂|猫|宠物/.test(text)) return "🐾";
+  if (/纸巾|厕纸|卷纸|抽纸|纸品/.test(text)) return "🧻";
+  if (/卫生巾|护理/.test(text)) return "🌸";
+  if (/洗衣|清洁|洗手|消毒/.test(text)) return "🫧";
+  if (/可乐|气泡水|水|饮料/.test(text)) return "🥤";
+  if (/手套|保鲜膜|厨房/.test(text)) return "🧤";
+  return "📦";
 }
 
 function daysUntil(value) {
@@ -2267,8 +2325,9 @@ function editItem(kind, id) {
 
   if (kind === "restock") {
     fillForm(elements.restockForm, item);
-    setSubmitText(elements.restockForm, "更新补货项");
+    setSubmitText(elements.restockForm, "更新库存物品");
     setActiveTab("restock");
+    ensurePantryOpen();
     formToShow = elements.restockForm;
   }
 
@@ -2332,7 +2391,7 @@ function resetStorageForm() {
 function resetRestockForm() {
   elements.restockForm.reset();
   elements.restockForm.elements.id.value = "";
-  setSubmitText(elements.restockForm, "保存补货项");
+  setSubmitText(elements.restockForm, "保存库存物品");
 }
 
 function fillRestockPreset(button) {
