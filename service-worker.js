@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyber-homekeeper-v33";
+const CACHE_NAME = "cyber-homekeeper-v37";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -16,6 +16,8 @@ const APP_SHELL = [
   "./assets/main/fridge-open.jpg",
   "./assets/main/closet-closed.jpg",
   "./assets/main/closet-open.jpg",
+  "./assets/main/file-cabinet-closed.jpg",
+  "./assets/main/file-cabinet-open.jpg",
   "./assets/ui/home-hero-house.jpg",
   "./assets/ui/tab-fridge.png",
   "./assets/ui/tab-clothes.png",

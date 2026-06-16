@@ -6,6 +6,35 @@ const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
 
 const state = loadData();
+const CLOSET_TYPES = ["上装", "下装", "裙子", "外套", "鞋子"];
+const DATE_TYPES = [
+  { value: "生日", icon: "🎂", accent: "#ff9eb8" },
+  { value: "纪念日", icon: "💗", accent: "#f7a1c4" },
+  { value: "证件", icon: "🪪", accent: "#9fc7ff" },
+  { value: "缴费", icon: "💳", accent: "#ffd17a" },
+  { value: "医疗", icon: "🩺", accent: "#9fdcb4" },
+  { value: "自定义", icon: "⭐", accent: "#c7a6ff" },
+];
+const DATE_FILTERS = ["全部", "生日", "纪念日", "证件", "自定义"];
+const REMINDER_DAY_OPTIONS = [1, 3, 7, 15, 30];
+const FILE_TYPES = [
+  { value: "证件", icon: "证" },
+  { value: "保险", icon: "保" },
+  { value: "医疗", icon: "医" },
+  { value: "发票", icon: "票" },
+  { value: "其他", icon: "其" },
+];
+const dateUiState = {
+  filter: "全部",
+  calendarDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  selectedDate: toDateInputValue(new Date()),
+};
+const outfitSelection = {
+  top: "",
+  bottom: "",
+  coat: "",
+  shoes: "",
+};
 
 const elements = {
   searchInput: $("#searchInput"),
@@ -40,9 +69,14 @@ function init() {
   bindButtons();
   bindPhotoPreview(elements.clothesPhotoInput, elements.clothesPhotoPreview);
   bindPhotoPreview(elements.storagePhotoInput, elements.storagePhotoPreview);
+  bindClothesAutoType();
   ensureFridgeExperience();
   useRealFridgeImages();
   useRealClosetImages();
+  ensureClosetExperience();
+  ensureDatesExperience();
+  useRealFileImages();
+  ensureFileExperience();
   updateReminderButton();
   render();
   checkBrowserNotifications(false);
@@ -216,7 +250,266 @@ function useRealClosetImages() {
     stage.innerHTML = `
       <img class="closet-photo closet-photo-closed" src="assets/main/closet-closed.jpg" alt="" loading="eager" />
       <img class="closet-photo closet-photo-open" src="assets/main/closet-open.jpg" alt="" loading="eager" />
+      <div class="closet-category-overlay" id="closetCategoryOverlay" aria-label="衣橱分类区域"></div>
     `;
+  }
+}
+
+function useRealFileImages() {
+  const stage = $(".photo-cabinet-button .cabinet-photo-stage");
+  if (stage && stage.dataset.realFileReady !== "true") {
+    stage.removeAttribute("aria-hidden");
+    stage.dataset.realFileReady = "true";
+    stage.innerHTML = `
+      <img class="cabinet-photo cabinet-photo-closed" src="assets/main/file-cabinet-closed.jpg" alt="" loading="eager" />
+      <img class="cabinet-photo cabinet-photo-open" src="assets/main/file-cabinet-open.jpg" alt="" loading="eager" />
+      <div class="file-category-overlay" id="fileCategoryOverlay" aria-label="文件分类"></div>
+    `;
+  }
+}
+
+function ensureClosetExperience() {
+  const section = $("#tab-clothes");
+  const scene = $(".closet-scene", section);
+  if (!section || !scene) return;
+
+  const eyebrow = $(".section-heading .eyebrow", section);
+  const title = $(".section-heading h2", section);
+  if (eyebrow) eyebrow.textContent = "拍照归档 · 自由搭配";
+  if (title) title.textContent = "兔兔衣橱";
+
+  if (!$(".closet-helper-panel", scene)) {
+    scene.insertAdjacentHTML(
+      "beforeend",
+      `
+        <aside class="closet-helper-panel" aria-label="衣橱操作面板">
+          <section class="closet-quick-card">
+            <div class="closet-panel-head">
+              <span>添加衣服</span>
+              <b>自动归类</b>
+            </div>
+            <p>拍照或选择本地照片，再补充衣服名称；系统会按关键词放进上装、下装、裙子、外套或鞋子。</p>
+            <div class="closet-upload-actions">
+              <button type="button" data-photo-trigger="clothesPhotoInput" data-photo-mode="camera">拍照上传</button>
+              <button type="button" data-photo-trigger="clothesPhotoInput" data-photo-mode="album">本地照片</button>
+              <button type="button" data-closet-form>填写详情</button>
+            </div>
+          </section>
+          <section class="closet-quick-card">
+            <div class="closet-panel-head">
+              <span>衣橱分类</span>
+              <b id="closetTotalCount">0 件</b>
+            </div>
+            <div class="closet-category-summary" id="closetCategorySummary"></div>
+          </section>
+          <section class="closet-quick-card closet-tip-card">
+            <div class="closet-panel-head">
+              <span>搭配提示</span>
+              <b>一键搭配</b>
+            </div>
+            <p id="closetTipText">打开衣橱后，点衣服就能组合今天的穿搭。</p>
+            <button class="closet-soft-button" type="button" data-outfit-random>帮我搭一套</button>
+          </section>
+        </aside>
+      `
+    );
+  }
+}
+
+function ensureFileExperience() {
+  const section = $("#tab-storage");
+  const scene = $(".cabinet-scene", section);
+  if (!section || !scene) return;
+
+  const eyebrow = $(".section-heading .eyebrow", section);
+  const title = $(".section-heading h2", section);
+  if (eyebrow) eyebrow.textContent = "重要资料";
+  if (title) title.textContent = "文件管理";
+  const listTitle = $("#storageList")?.closest("div")?.querySelector(".list-head h3");
+  if (listTitle) listTitle.textContent = "文件清单";
+
+  const form = elements.storageForm;
+  if (form && form.dataset.fileExperienceReady !== "true") {
+    form.dataset.fileExperienceReady = "true";
+    const nameLabel = form.elements.name?.closest("label");
+    const typeField = form.elements.type;
+    const ownerLabel = form.elements.owner?.closest("label");
+    const roomLabel = form.elements.room?.closest("label");
+    const spotLabel = form.elements.spot?.closest("label");
+    const noteLabel = form.elements.note?.closest("label");
+    const photoLabel = elements.storagePhotoInput?.closest("label");
+
+    if (nameLabel) $("span", nameLabel).textContent = "文件名称";
+    if (form.elements.name) form.elements.name.placeholder = "例如：身份证、保险单、体检报告";
+    if (typeField) {
+      typeField.innerHTML = FILE_TYPES.map((type) => `<option>${type.value}</option>`).join("");
+    }
+    if (ownerLabel) ownerLabel.classList.add("file-hidden-field");
+    if (roomLabel) roomLabel.classList.add("file-hidden-field");
+    if (spotLabel) {
+      $("span", spotLabel).textContent = "保存位置";
+      form.elements.spot.required = false;
+      form.elements.spot.placeholder = "例如：文件柜第一层，也可以不填";
+    }
+    if (photoLabel) {
+      $("span", photoLabel).textContent = "文件照片 / PDF";
+      const buttons = $$(".photo-choice", photoLabel);
+      if (buttons[0]) buttons[0].textContent = "拍照";
+      if (buttons[1]) buttons[1].textContent = "选照片 / PDF";
+    }
+    if (elements.storagePhotoInput) {
+      elements.storagePhotoInput.accept = "image/*,application/pdf";
+    }
+    if (noteLabel) {
+      $("span", noteLabel).textContent = "备注";
+      form.elements.note.placeholder = "编号、有效期、需要注意的事";
+    }
+    setSubmitText(form, "保存文件");
+  }
+
+  const copy = $(".scene-copy", scene);
+  if (copy) {
+    const heading = $("h3", copy);
+    const text = $("p", copy);
+    if (heading) heading.textContent = "我的文件柜";
+    if (text) text.textContent = "证件、保险、医疗、发票和其他资料都放在这里。";
+  }
+
+  if (!$(".file-action-bar", scene)) {
+    scene.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div class="file-action-bar">
+          <button class="file-add-button" type="button" data-file-add>＋ 添加文件</button>
+          <button class="file-organize-button" type="button" data-file-organize>整理文件</button>
+        </div>
+      `
+    );
+  }
+}
+
+function ensureDatesExperience() {
+  const section = $("#tab-dates");
+  const scene = $(".reminder-scene", section);
+  if (!section || !scene) return;
+
+  const eyebrow = $(".section-heading .eyebrow", section);
+  const title = $(".section-heading h2", section);
+  if (eyebrow) eyebrow.textContent = "倒计时 · 手机日历";
+  if (title) title.textContent = "重要日期";
+
+  const notice = $(".notice-line", section);
+  if (notice) {
+    notice.textContent = "记录生日、纪念日、证件到期、缴费和医疗日期；导出日历后，手机会按你设置的提前天数提醒。";
+  }
+
+  if (!$(".dates-side-panel", scene)) {
+    scene.insertAdjacentHTML(
+      "beforeend",
+      `
+        <aside class="dates-side-panel" aria-label="重要日期统计">
+          <section class="date-stat-card">
+            <span>重要日期</span>
+            <strong id="dateTotalCount">0</strong>
+            <small id="dateNearestText">还没有日期</small>
+          </section>
+          <section class="date-stat-card date-stat-card-hot">
+            <span>即将到来</span>
+            <strong id="dateSoonCount">0</strong>
+            <small id="dateSoonText">7 天内暂无提醒</small>
+          </section>
+        </aside>
+      `
+    );
+  }
+
+  if (!$(".dates-workbench", section)) {
+    scene.insertAdjacentHTML(
+      "afterend",
+      `
+        <div class="dates-workbench" aria-label="重要日期管理">
+          <div class="date-filter-row" id="dateFilterRow"></div>
+          <div class="date-manager-grid">
+            <section class="date-list-panel">
+              <div class="date-panel-head">
+                <div>
+                  <p class="eyebrow">最近提醒</p>
+                  <h3>倒计时清单</h3>
+                </div>
+                <button class="date-add-mini" type="button" data-date-add>＋ 添加</button>
+              </div>
+              <div class="date-list-modern" id="dateModernList"></div>
+            </section>
+            <section class="date-calendar-panel">
+              <div class="date-calendar-head">
+                <button type="button" data-date-prev aria-label="上个月">‹</button>
+                <strong id="dateCalendarTitle"></strong>
+                <button type="button" data-date-next aria-label="下个月">›</button>
+              </div>
+              <div class="date-calendar-weekdays" aria-hidden="true">
+                <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+              </div>
+              <div class="date-calendar-grid" id="dateCalendarGrid"></div>
+              <div class="date-selected-detail" id="dateSelectedDetail"></div>
+            </section>
+          </div>
+          <div class="date-bottom-actions">
+            <button class="date-primary-action" type="button" data-date-add>＋ 添加重要日期</button>
+          </div>
+        </div>
+      `
+    );
+  }
+
+  if (!$("#dateModal")) {
+    section.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div class="date-modal hidden" id="dateModal" role="dialog" aria-modal="true" aria-label="添加重要日期">
+          <form class="date-modal-panel" id="dateQuickForm">
+            <button class="date-modal-close" type="button" data-date-close aria-label="关闭">×</button>
+            <input name="id" type="hidden" />
+            <div class="date-modal-title">
+              <span>重要日期</span>
+              <strong id="dateModalTitle">添加重要日期</strong>
+            </div>
+            <label>
+              <span>标题</span>
+              <input name="name" required placeholder="例如：妈妈生日、护照到期" />
+            </label>
+            <div class="two-fields">
+              <label>
+                <span>分类</span>
+                <select name="type">
+                  ${DATE_TYPES.map((type) => `<option>${type.value}</option>`).join("")}
+                </select>
+              </label>
+              <label>
+                <span>日期</span>
+                <input name="date" type="date" required />
+              </label>
+            </div>
+            <label>
+              <span>提醒时间</span>
+              <select name="remindDays">
+                ${REMINDER_DAY_OPTIONS.map((day) => `<option value="${day}">提前 ${day} 天提醒</option>`).join("")}
+              </select>
+            </label>
+            <label>
+              <span>备注</span>
+              <textarea name="note" rows="3" placeholder="需要准备什么、联系人、地址"></textarea>
+            </label>
+            <button class="date-submit-button" type="submit">保存重要日期</button>
+          </form>
+        </div>
+      `
+    );
+  }
+
+  const quickForm = $("#dateQuickForm");
+  if (quickForm && quickForm.dataset.bound !== "true") {
+    quickForm.dataset.bound = "true";
+    quickForm.addEventListener("submit", handleDateQuickSubmit);
   }
 }
 
@@ -295,11 +588,28 @@ function bindButtons() {
     const photoButton = event.target.closest("[data-open-photo]");
     const storedItemButton = event.target.closest("[data-open-kind]");
     const photoTrigger = event.target.closest("[data-photo-trigger]");
+    const closetFormButton = event.target.closest("[data-closet-form]");
     const furnitureButton = event.target.closest("[data-furniture]");
     const restockPreset = event.target.closest("[data-restock-preset]");
     const fridgeAddButton = event.target.closest("[data-fridge-add]");
     const fridgeOrganizeButton = event.target.closest("[data-fridge-organize]");
     const fridgePanelButton = event.target.closest("[data-fridge-overview], [data-fridge-today], [data-fridge-tip]");
+    const outfitPickButton = event.target.closest("[data-outfit-pick]");
+    const outfitRemoveButton = event.target.closest("[data-outfit-remove]");
+    const outfitSaveButton = event.target.closest("[data-outfit-save]");
+    const outfitClearButton = event.target.closest("[data-outfit-clear]");
+    const outfitRandomButton = event.target.closest("[data-outfit-random]");
+    const outfitHistoryButton = event.target.closest("[data-open-outfit]");
+    const dateAddButton = event.target.closest("[data-date-add]");
+    const dateCloseButton = event.target.closest("[data-date-close]");
+    const dateFilterButton = event.target.closest("[data-date-filter]");
+    const datePrevButton = event.target.closest("[data-date-prev]");
+    const dateNextButton = event.target.closest("[data-date-next]");
+    const dateDayButton = event.target.closest("[data-date-day]");
+    const fileAddButton = event.target.closest("[data-file-add]");
+    const fileOrganizeButton = event.target.closest("[data-file-organize]");
+    const fileCategoryButton = event.target.closest("[data-file-category]");
+    const fileOpenButton = event.target.closest("[data-open-file]");
 
     if (editButton) {
       editItem(editButton.dataset.editKind, editButton.dataset.id);
@@ -329,6 +639,94 @@ function bindButtons() {
       } else {
         openFridgePanel("overview");
       }
+      return;
+    }
+
+    if (closetFormButton) {
+      focusClothesForm();
+      return;
+    }
+
+    if (outfitPickButton) {
+      pickOutfitItem(outfitPickButton.dataset.outfitPick, outfitPickButton.dataset.id);
+      return;
+    }
+
+    if (outfitRemoveButton) {
+      removeOutfitItem(outfitRemoveButton.dataset.outfitRemove);
+      return;
+    }
+
+    if (outfitSaveButton) {
+      saveCurrentOutfit();
+      return;
+    }
+
+    if (outfitClearButton) {
+      clearOutfitSelection();
+      return;
+    }
+
+    if (outfitRandomButton) {
+      randomOutfit();
+      return;
+    }
+
+    if (outfitHistoryButton) {
+      loadSavedOutfit(outfitHistoryButton.dataset.openOutfit);
+      return;
+    }
+
+    if (dateAddButton) {
+      openDateModal();
+      return;
+    }
+
+    if (dateCloseButton) {
+      closeDateModal();
+      return;
+    }
+
+    if (dateFilterButton) {
+      dateUiState.filter = dateFilterButton.dataset.dateFilter || "全部";
+      renderDatesExperience();
+      return;
+    }
+
+    if (datePrevButton || dateNextButton) {
+      const direction = dateNextButton ? 1 : -1;
+      dateUiState.calendarDate = new Date(
+        dateUiState.calendarDate.getFullYear(),
+        dateUiState.calendarDate.getMonth() + direction,
+        1
+      );
+      renderDatesExperience();
+      return;
+    }
+
+    if (dateDayButton) {
+      dateUiState.selectedDate = dateDayButton.dataset.dateDay;
+      renderDatesExperience();
+      return;
+    }
+
+    if (fileAddButton) {
+      focusStorageForm();
+      return;
+    }
+
+    if (fileOrganizeButton) {
+      organizeFiles();
+      return;
+    }
+
+    if (fileCategoryButton) {
+      focusStorageForm(fileCategoryButton.dataset.fileCategory);
+      return;
+    }
+
+    if (fileOpenButton) {
+      openFileAttachment(fileOpenButton.dataset.openFile, fileOpenButton.dataset.fileName || "赛博小管家文件");
       return;
     }
 
@@ -364,9 +762,16 @@ function bindButtons() {
 
   document.addEventListener("keydown", (event) => {
     const card = event.target.closest(".fridge-food-card[data-edit-kind]");
-    if (!card || !["Enter", " "].includes(event.key)) return;
-    event.preventDefault();
-    editItem(card.dataset.editKind, card.dataset.id);
+    const outfitCard = event.target.closest("[data-outfit-pick]");
+    if (!["Enter", " "].includes(event.key)) return;
+    if (card) {
+      event.preventDefault();
+      editItem(card.dataset.editKind, card.dataset.id);
+    }
+    if (outfitCard) {
+      event.preventDefault();
+      pickOutfitItem(outfitCard.dataset.outfitPick, outfitCard.dataset.id);
+    }
   });
 }
 
@@ -384,6 +789,7 @@ function emptyData() {
   return {
     fridge: [],
     clothes: [],
+    outfits: [],
     dates: [],
     storage: [],
     restock: [],
@@ -395,6 +801,7 @@ function normalizeData(value) {
   return {
     fridge: Array.isArray(data?.fridge) ? data.fridge : [],
     clothes: Array.isArray(data?.clothes) ? data.clothes : [],
+    outfits: Array.isArray(data?.outfits) ? data.outfits : [],
     dates: Array.isArray(data?.dates) ? data.dates : [],
     storage: Array.isArray(data?.storage) ? data.storage : [],
     restock: Array.isArray(data?.restock) ? data.restock : [],
@@ -515,6 +922,42 @@ function ensureFridgeOpen() {
   return fridgeButton;
 }
 
+function ensureClosetOpen() {
+  const closetButton = $('[data-furniture="closet"]');
+  if (closetButton && !closetButton.classList.contains("door-open")) {
+    toggleFurnitureDoor(closetButton);
+  }
+  return closetButton;
+}
+
+function ensureFileOpen() {
+  const cabinetButton = $('[data-furniture="cabinet"]');
+  if (cabinetButton && !cabinetButton.classList.contains("door-open")) {
+    toggleFurnitureDoor(cabinetButton);
+  }
+  return cabinetButton;
+}
+
+function focusClothesForm() {
+  setActiveTab("clothes");
+  ensureClosetOpen();
+  const nameField = elements.clothesForm.elements.name;
+  elements.clothesForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  window.setTimeout(() => nameField?.focus(), 260);
+}
+
+function focusStorageForm(type = "") {
+  setActiveTab("storage");
+  ensureFileOpen();
+  $("#tab-storage")?.classList.add("file-editing");
+  if (type && elements.storageForm.elements.type) {
+    elements.storageForm.elements.type.value = normalizeFileType(type);
+  }
+  const nameField = elements.storageForm.elements.name;
+  elements.storageForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  window.setTimeout(() => nameField?.focus(), 260);
+}
+
 function openFridgePanel(panel) {
   setActiveTab("fridge");
   ensureFridgeOpen();
@@ -554,29 +997,67 @@ function organizeFridge() {
   showFridgeToast("已按到期时间整理冰箱");
 }
 
+function organizeFiles() {
+  state.storage.sort((a, b) => {
+    const orderA = FILE_TYPES.findIndex((type) => type.value === normalizeFileType(a.type));
+    const orderB = FILE_TYPES.findIndex((type) => type.value === normalizeFileType(b.type));
+    if (orderA !== orderB) return orderA - orderB;
+    return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+  });
+  if (!saveData()) return;
+  render();
+  ensureFileOpen();
+  focusMainVisual("storage");
+  showFridgeToast("文件已按分类整理");
+}
+
 async function handleClothesSubmit(event) {
   event.preventDefault();
   const data = getFormData(elements.clothesForm);
   const previous = state.clothes.find((item) => item.id === data.id);
   const file = elements.clothesPhotoInput.files[0];
   const photo = file ? await compressImage(file, 1100, 0.8) : previous?.photo || "";
+  const detectedType = normalizeClothesType(data.type) || detectClothesType(`${data.name} ${data.note} ${file?.name || previous?.name || ""}`) || "上装";
 
   upsert("clothes", {
     ...data,
+    type: detectedType,
     photo,
   });
   if (saveData()) {
     resetClothesForm();
     render();
+    ensureClosetOpen();
+    focusMainVisual("clothes");
   }
 }
 
 function handleDateSubmit(event) {
   event.preventDefault();
   const data = getFormData(elements.dateForm);
-  upsert("dates", data);
+  upsert("dates", {
+    ...data,
+    type: normalizeDateType(data.type),
+    remindDays: data.remindDays || "1",
+  });
   if (saveData()) {
     resetDateForm();
+    render();
+    checkBrowserNotifications(true);
+  }
+}
+
+function handleDateQuickSubmit(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = getFormData(form);
+  upsert("dates", {
+    ...data,
+    type: normalizeDateType(data.type),
+    remindDays: data.remindDays || "1",
+  });
+  if (saveData()) {
+    closeDateModal();
     render();
     checkBrowserNotifications(true);
   }
@@ -588,14 +1069,21 @@ async function handleStorageSubmit(event) {
   const previous = state.storage.find((item) => item.id === data.id);
   const file = elements.storagePhotoInput.files[0];
   const photo = file ? await compressImage(file, 1000, 0.78) : previous?.photo || "";
+  const fileType = file?.type || previous?.fileType || "";
+  const fileName = file?.name || previous?.fileName || "";
 
   upsert("storage", {
     ...data,
+    type: normalizeFileType(data.type),
     photo,
+    fileType,
+    fileName,
   });
   if (saveData()) {
     resetStorageForm();
     render();
+    ensureFileOpen();
+    focusMainVisual("storage");
   }
 }
 
@@ -862,6 +1350,7 @@ function renderClothes() {
   $("#clothesListMeta").textContent = `${list.length} 件`;
   if (!list.length) {
     renderEmpty(elements.clothesList, "还没有衣服照片");
+    renderClosetStudio();
     return;
   }
 
@@ -878,7 +1367,7 @@ function renderClothes() {
           <div class="photo-body">
             <div class="card-top">
               <h4>${escapeHtml(item.name)}</h4>
-              <span class="tag blue">${escapeHtml(item.type || "衣服")}</span>
+              <span class="tag blue">${escapeHtml(getClothesDisplayType(item) || "衣服")}</span>
             </div>
             ${compactMeta([
               item.season || "未填季节",
@@ -891,6 +1380,291 @@ function renderClothes() {
       `;
     })
     .join("");
+  renderClosetStudio();
+}
+
+function renderClosetStudio() {
+  renderClosetCategories();
+  renderClosetStats();
+  renderOutfitPreview();
+  renderOutfitHistory();
+}
+
+function renderClosetCategories() {
+  const overlay = $("#closetCategoryOverlay");
+  if (!overlay) return;
+
+  overlay.innerHTML = CLOSET_TYPES
+    .map((type) => {
+      const items = state.clothes.filter((item) => getClothesDisplayType(item) === type);
+      const slot = outfitSlotForType(type);
+      const cards = items.length
+        ? items
+            .map((item) => {
+              const active = Object.values(outfitSelection).includes(item.id);
+              const photo = item.photo
+                ? `<img src="${item.photo}" alt="${escapeAttr(item.name || type)}" />`
+                : `<span class="closet-item-icon" aria-hidden="true">${clothesTypeIcon(type)}</span>`;
+              return `
+                <span class="closet-clothes-chip ${active ? "selected" : ""}" role="button" tabindex="0" data-outfit-pick="${slot}" data-id="${escapeAttr(item.id)}">
+                  ${photo}
+                  <b>${escapeHtml(item.name || type)}</b>
+                </span>
+              `;
+            })
+            .join("")
+        : `<span class="closet-zone-empty">还没有${escapeHtml(type)}</span>`;
+
+      return `
+        <section class="closet-zone closet-zone-${escapeAttr(type)}">
+          <header>${escapeHtml(type)}</header>
+          <div class="closet-zone-items">${cards}</div>
+        </section>
+      `;
+    })
+    .join("");
+}
+
+function renderOutfitPreview() {
+  const container = $("#outfitPreview");
+  if (!container) return;
+  const slots = [
+    ["top", "上装"],
+    ["bottom", "下装/裙子"],
+    ["coat", "外套"],
+    ["shoes", "鞋子"],
+  ];
+
+  container.innerHTML = slots
+    .map(([slot, label]) => {
+      const item = getClothesById(outfitSelection[slot]);
+      const content = item
+        ? item.photo
+          ? `<img src="${item.photo}" alt="${escapeAttr(item.name || label)}" />`
+          : `<span aria-hidden="true">${clothesTypeIcon(item.type)}</span>`
+        : `<span aria-hidden="true">＋</span>`;
+      return `
+        <div class="outfit-slot ${item ? "filled" : ""}" data-slot="${slot}">
+          <div class="outfit-slot-photo">${content}</div>
+          <strong>${escapeHtml(label)}</strong>
+          <p>${escapeHtml(item?.name || "点衣橱里的衣服选择")}</p>
+          ${item ? `<button class="text-button" type="button" data-outfit-remove="${slot}">移除</button>` : ""}
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function renderOutfitHistory() {
+  const history = $("#outfitHistory");
+  const meta = $("#outfitHistoryMeta");
+  if (meta) meta.textContent = `${state.outfits.length} 套`;
+  if (!history) return;
+  if (!state.outfits.length) {
+    history.innerHTML = `<div class="closet-empty-note">保存搭配后，会出现在这里。</div>`;
+    return;
+  }
+
+  history.innerHTML = state.outfits
+    .slice()
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 12)
+    .map((outfit) => {
+      const items = outfitItemIds(outfit)
+        .map(getClothesById)
+        .filter(Boolean);
+      const thumbs = items
+        .map((item) =>
+          item.photo
+            ? `<img src="${item.photo}" alt="${escapeAttr(item.name || "衣服")}" />`
+            : `<span aria-hidden="true">${clothesTypeIcon(item.type)}</span>`
+        )
+        .join("");
+      return `
+        <button class="outfit-history-card" type="button" data-open-outfit="${escapeAttr(outfit.id)}">
+          <span class="outfit-history-thumbs">${thumbs || "暂无"}</span>
+          <b>${escapeHtml(outfit.name || "搭配方案")}</b>
+          <small>${escapeHtml(formatDateLabel(outfit.createdAt))}</small>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function renderClosetStats() {
+  setText($("#closetTotalCount"), `${state.clothes.length} 件`);
+
+  const summary = $("#closetCategorySummary");
+  if (summary) {
+    summary.innerHTML = CLOSET_TYPES.map((type) => {
+      const count = state.clothes.filter((item) => getClothesDisplayType(item) === type).length;
+      return `
+        <span>
+          <b>${escapeHtml(type)}</b>
+          <em>${count} 件</em>
+        </span>
+      `;
+    }).join("");
+  }
+
+  const tip = $("#closetTipText");
+  if (!tip) return;
+  const topCount = state.clothes.filter((item) => getClothesDisplayType(item) === "上装").length;
+  const bottomCount = state.clothes.filter((item) => ["下装", "裙子"].includes(getClothesDisplayType(item))).length;
+  const shoeCount = state.clothes.filter((item) => getClothesDisplayType(item) === "鞋子").length;
+  if (!state.clothes.length) {
+    tip.textContent = "先拍几件常穿衣服，兔兔衣橱就能开始帮你搭配。";
+  } else if (!topCount || !bottomCount || !shoeCount) {
+    tip.textContent = "想要一键搭配更完整，建议补充上装、下装或裙子、鞋子。";
+  } else {
+    tip.textContent = "分类已经准备好了，点衣橱里的衣服，中央会生成完整穿搭。";
+  }
+}
+
+function pickOutfitItem(slot, id) {
+  if (!slot || !id || !(slot in outfitSelection)) return;
+  outfitSelection[slot] = id;
+  renderClosetStudio();
+  showClosetToast("已加入今日穿搭");
+}
+
+function removeOutfitItem(slot) {
+  if (!(slot in outfitSelection)) return;
+  outfitSelection[slot] = "";
+  renderClosetStudio();
+}
+
+function clearOutfitSelection() {
+  Object.keys(outfitSelection).forEach((slot) => {
+    outfitSelection[slot] = "";
+  });
+  renderClosetStudio();
+}
+
+function randomOutfit() {
+  const pick = (types) => {
+    const items = state.clothes.filter((item) => types.includes(getClothesDisplayType(item)));
+    return items.length ? items[Math.floor(Math.random() * items.length)].id : "";
+  };
+  outfitSelection.top = pick(["上装"]);
+  outfitSelection.bottom = pick(["下装", "裙子"]);
+  outfitSelection.coat = pick(["外套"]);
+  outfitSelection.shoes = pick(["鞋子"]);
+  renderClosetStudio();
+  if (outfitItemIds(outfitSelection).length) {
+    ensureClosetOpen();
+    showClosetToast("已帮你搭好一套");
+  } else {
+    alert("衣橱里还没有可搭配的衣服，先拍照添加几件吧。");
+  }
+}
+
+function saveCurrentOutfit() {
+  const ids = outfitItemIds(outfitSelection);
+  if (!ids.length) {
+    alert("请先在打开的衣橱里选择衣服，再保存搭配。");
+    return;
+  }
+  const now = new Date().toISOString();
+  state.outfits.unshift({
+    id: uid(),
+    name: `搭配 ${state.outfits.length + 1}`,
+    ...outfitSelection,
+    createdAt: now,
+    updatedAt: now,
+  });
+  if (saveData()) {
+    renderClosetStudio();
+    showClosetToast("搭配已保存");
+  }
+}
+
+function showClosetToast(message) {
+  let toast = $(".closet-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.className = "closet-toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("show");
+  window.clearTimeout(showClosetToast.timer);
+  showClosetToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1700);
+}
+
+function loadSavedOutfit(id) {
+  const outfit = state.outfits.find((item) => item.id === id);
+  if (!outfit) return;
+  Object.keys(outfitSelection).forEach((slot) => {
+    outfitSelection[slot] = outfit[slot] || "";
+  });
+  setActiveTab("clothes");
+  ensureClosetOpen();
+  renderClosetStudio();
+  focusMainVisual("clothes");
+}
+
+function outfitItemIds(source) {
+  return ["top", "bottom", "coat", "shoes"].map((slot) => source[slot]).filter(Boolean);
+}
+
+function getClothesById(id) {
+  return state.clothes.find((item) => item.id === id);
+}
+
+function outfitSlotForType(type) {
+  const normalized = normalizeClothesType(type);
+  if (normalized === "上装") return "top";
+  if (normalized === "外套") return "coat";
+  if (normalized === "鞋子") return "shoes";
+  return "bottom";
+}
+
+function normalizeClothesType(type) {
+  const text = cleanText(type);
+  if (CLOSET_TYPES.includes(text)) return text;
+  if (["上衣", "衬衫", "毛衣", "T恤", "短袖", "卫衣"].includes(text)) return "上装";
+  if (["裤子", "短裤", "长裤", "半身裙"].includes(text)) return "下装";
+  if (["连衣裙", "裙"].includes(text)) return "裙子";
+  if (["大衣", "夹克", "风衣", "羽绒服"].includes(text)) return "外套";
+  if (["鞋", "鞋履"].includes(text)) return "鞋子";
+  return "";
+}
+
+function detectClothesType(text) {
+  const value = cleanText(text).toLowerCase();
+  if (!value) return "";
+  const rules = [
+    ["鞋子", ["鞋", "靴", "sneaker", "shoe", "boot", "loafer"]],
+    ["外套", ["外套", "大衣", "风衣", "羽绒服", "夹克", "西装", "coat", "jacket", "blazer"]],
+    ["裙子", ["裙", "连衣裙", "dress", "skirt"]],
+    ["下装", ["裤", "牛仔裤", "短裤", "长裤", "pants", "jeans", "trousers", "shorts"]],
+    ["上装", ["上衣", "衬衫", "t恤", "T恤", "短袖", "毛衣", "卫衣", "背心", "shirt", "top", "tee", "sweater", "hoodie"]],
+  ];
+  const matched = rules.find(([, keywords]) => keywords.some((keyword) => value.includes(keyword.toLowerCase())));
+  return matched ? matched[0] : "";
+}
+
+function getClothesDisplayType(item) {
+  return normalizeClothesType(item?.type) || detectClothesType(`${item?.name || ""} ${item?.note || ""}`) || "上装";
+}
+
+function clothesTypeIcon(type) {
+  const icons = {
+    上装: "上",
+    下装: "下",
+    裙子: "裙",
+    外套: "外",
+    鞋子: "鞋",
+  };
+  return icons[normalizeClothesType(type)] || "衣";
+}
+
+function formatDateLabel(value) {
+  if (!value) return "刚刚";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "刚刚";
+  return date.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" });
 }
 
 function renderDates() {
@@ -901,6 +1675,7 @@ function renderDates() {
   $("#dateListMeta").textContent = `${list.length} 个`;
   if (!list.length) {
     renderEmpty(elements.dateList, "还没有重要日期");
+    renderDatesExperience();
     return;
   }
 
@@ -915,42 +1690,267 @@ function renderDates() {
           </div>
           ${compactMeta([
             item.date ? `日期 ${item.date}` : "未填日期",
-            item.type || "其他",
-            "提前一天提醒"
+            normalizeDateType(item.type),
+            formatReminderLabel(item.remindDays)
           ])}
           ${cardActions("dates", item.id)}
         </article>
       `;
     })
     .join("");
+  renderDatesExperience();
+}
+
+function renderDatesExperience() {
+  if (!$("#dateModernList")) return;
+  const allDates = state.dates.slice().sort((a, b) => sortByDate(a.date, b.date));
+  const upcoming = allDates.filter((item) => daysUntil(item.date) >= 0);
+  const soon = upcoming.filter((item) => daysUntil(item.date) <= 7);
+  const nearest = upcoming[0];
+
+  setText($("#dateTotalCount"), allDates.length);
+  setText($("#dateSoonCount"), soon.length);
+  setText($("#dateNearestText"), nearest ? `${nearest.name}（${getDateStatus(nearest).text}）` : "还没有日期");
+  setText($("#dateSoonText"), soon.length ? `最近：${soon[0].name}` : "7 天内暂无提醒");
+
+  renderDateFilters();
+  renderModernDateList();
+  renderDateCalendar();
+}
+
+function renderDateFilters() {
+  const row = $("#dateFilterRow");
+  if (!row) return;
+  row.innerHTML = DATE_FILTERS.map((filter) => {
+    const active = dateUiState.filter === filter;
+    return `
+      <button class="${active ? "active" : ""}" type="button" data-date-filter="${escapeAttr(filter)}">
+        ${escapeHtml(filter)}
+      </button>
+    `;
+  }).join("");
+}
+
+function renderModernDateList() {
+  const container = $("#dateModernList");
+  if (!container) return;
+  const list = filterBySearch(state.dates)
+    .filter((item) => dateMatchesFilter(item, dateUiState.filter))
+    .slice()
+    .sort((a, b) => sortByDate(a.date, b.date));
+
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="date-empty-card">
+        <strong>还没有重要日期哦</strong>
+        <span>添加生日、纪念日、证件到期等日期，起司会帮你排好倒计时。</span>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = list
+    .map((item) => {
+      const config = getDateTypeConfig(item.type);
+      const status = getDateStatus(item);
+      const urgent = status.level === "danger" || status.level === "warn" || daysUntil(item.date) <= Number(item.remindDays || 1);
+      return `
+        <article class="date-modern-card ${urgent ? "is-urgent" : ""}" style="--date-accent:${config.accent}">
+          <div class="date-modern-icon" aria-hidden="true">${config.icon}</div>
+          <div class="date-modern-main">
+            <strong>${escapeHtml(item.name)}</strong>
+            <span>${escapeHtml(formatDateDisplay(item.date))}</span>
+            <small>${escapeHtml(formatReminderLabel(item.remindDays))}</small>
+          </div>
+          <div class="date-countdown">
+            <b>${escapeHtml(status.text)}</b>
+            <span>${escapeHtml(normalizeDateType(item.type))}</span>
+          </div>
+          <div class="date-modern-actions">
+            <button type="button" data-edit-kind="dates" data-id="${escapeAttr(item.id)}">编辑</button>
+            <button type="button" data-delete-kind="dates" data-id="${escapeAttr(item.id)}">删除</button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderDateCalendar() {
+  const title = $("#dateCalendarTitle");
+  const grid = $("#dateCalendarGrid");
+  if (!title || !grid) return;
+
+  const monthDate = dateUiState.calendarDate;
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  title.textContent = `${year} 年 ${month + 1} 月`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const dayCount = new Date(year, month + 1, 0).getDate();
+  const today = toDateInputValue(new Date());
+  const cells = [];
+
+  for (let i = 0; i < firstDay; i += 1) {
+    cells.push(`<span class="date-day-cell muted"></span>`);
+  }
+
+  for (let day = 1; day <= dayCount; day += 1) {
+    const value = toDateInputValue(new Date(year, month, day));
+    const items = state.dates.filter((item) => item.date === value);
+    const selected = dateUiState.selectedDate === value;
+    cells.push(`
+      <button class="date-day-cell ${value === today ? "today" : ""} ${selected ? "selected" : ""} ${items.length ? "has-date" : ""}" type="button" data-date-day="${value}">
+        <span>${day}</span>
+        ${items.length ? `<i>${items.length}</i>` : ""}
+      </button>
+    `);
+  }
+
+  grid.innerHTML = cells.join("");
+  renderSelectedDateDetail();
+}
+
+function renderSelectedDateDetail() {
+  const container = $("#dateSelectedDetail");
+  if (!container) return;
+  const items = state.dates
+    .filter((item) => item.date === dateUiState.selectedDate)
+    .sort((a, b) => sortByDate(a.date, b.date));
+
+  if (!items.length) {
+    container.innerHTML = `
+      <strong>${escapeHtml(formatDateDisplay(dateUiState.selectedDate))}</strong>
+      <span>这一天还没有记录。</span>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <strong>${escapeHtml(formatDateDisplay(dateUiState.selectedDate))}</strong>
+    ${items
+      .map((item) => {
+        const config = getDateTypeConfig(item.type);
+        return `<button type="button" data-edit-kind="dates" data-id="${escapeAttr(item.id)}">${config.icon} ${escapeHtml(item.name)} · ${escapeHtml(getDateStatus(item).text)}</button>`;
+      })
+      .join("")}
+  `;
+}
+
+function openDateModal(item = {}) {
+  setActiveTab("dates");
+  const modal = $("#dateModal");
+  const form = $("#dateQuickForm");
+  if (!modal || !form) return;
+
+  form.reset();
+  form.elements.id.value = item.id || "";
+  form.elements.name.value = item.name || "";
+  form.elements.type.value = normalizeDateType(item.type || "生日");
+  form.elements.date.value = item.date || dateUiState.selectedDate || toDateInputValue(new Date());
+  form.elements.remindDays.value = String(item.remindDays || "1");
+  form.elements.note.value = item.note || "";
+  setText($("#dateModalTitle"), item.id ? "编辑重要日期" : "添加重要日期");
+  modal.classList.remove("hidden");
+  window.setTimeout(() => form.elements.name?.focus(), 80);
+}
+
+function closeDateModal() {
+  const modal = $("#dateModal");
+  const form = $("#dateQuickForm");
+  if (!modal || !form) return;
+  modal.classList.add("hidden");
+  form.reset();
+  form.elements.id.value = "";
+}
+
+function normalizeDateType(type) {
+  const text = cleanText(type);
+  if (["生日", "纪念日", "证件", "缴费", "医疗", "自定义"].includes(text)) return text;
+  if (["证件到期", "身份证", "护照", "驾驶证", "签证"].includes(text)) return "证件";
+  if (["健康", "体检", "复查", "预约检查"].includes(text)) return "医疗";
+  if (["房租", "保险续费", "会员续费", "车险续费"].includes(text)) return "缴费";
+  if (["结婚纪念日", "恋爱纪念日", "相识纪念日"].includes(text)) return "纪念日";
+  return "自定义";
+}
+
+function getDateTypeConfig(type) {
+  const normalized = normalizeDateType(type);
+  return DATE_TYPES.find((item) => item.value === normalized) || DATE_TYPES[DATE_TYPES.length - 1];
+}
+
+function normalizeFileType(type) {
+  const text = cleanText(type);
+  if (FILE_TYPES.some((item) => item.value === text)) return text;
+  if (["身份证", "护照", "驾驶证", "签证", "户口本", "证书"].includes(text)) return "证件";
+  if (["保单", "车险", "保险单", "保险合同"].includes(text)) return "保险";
+  if (["体检", "复查", "病历", "检查报告", "医疗报告", "处方"].includes(text)) return "医疗";
+  if (["票据", "收据", "小票", "报销", "账单"].includes(text)) return "发票";
+  return "其他";
+}
+
+function fileTypeIcon(type) {
+  return FILE_TYPES.find((item) => item.value === normalizeFileType(type))?.icon || "📁";
+}
+
+function isPdfAttachment(item) {
+  const src = typeof item === "string" ? item : item?.photo || "";
+  const fileType = typeof item === "string" ? "" : item?.fileType || "";
+  const fileName = typeof item === "string" ? "" : item?.fileName || "";
+  return /^data:application\/pdf/i.test(src) || fileType === "application/pdf" || /\.pdf$/i.test(fileName);
+}
+
+function dateMatchesFilter(item, filter) {
+  if (!filter || filter === "全部") return true;
+  return normalizeDateType(item.type) === filter;
+}
+
+function formatDateDisplay(value) {
+  if (!value) return "未填日期";
+  const date = parseLocalDate(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatReminderLabel(value) {
+  const days = Number(value || 1);
+  return `提前 ${days} 天提醒`;
 }
 
 function renderStorage() {
   const list = filterBySearch(state.storage);
-  $("#storageListMeta").textContent = `${list.length} 项`;
+  renderFileCategories(list);
+  $("#storageListMeta").textContent = `${list.length} 个文件`;
   if (!list.length) {
-    renderEmpty(elements.storageList, "还没有位置记录");
+    elements.storageList.innerHTML = `
+      <div class="empty-state file-empty-state">
+        <strong>还没有文件哦</strong>
+        <span>添加证件、保险、医疗等重要资料，统一整理更方便。</span>
+      </div>
+    `;
     return;
   }
 
   elements.storageList.innerHTML = list
     .map((item) => {
-      const photoBlock = item.photo
-        ? `<button class="text-button" type="button" data-open-photo="${escapeAttr(item.photo)}" data-caption="${escapeAttr(item.name || "位置照片")}">看位置照片</button>`
+      const normalizedType = normalizeFileType(item.type);
+      const attachmentBlock = item.photo
+        ? isPdfAttachment(item)
+          ? `<button class="text-button" type="button" data-open-file="${escapeAttr(item.photo)}" data-file-name="${escapeAttr(item.fileName || `${item.name || "文件"}.pdf`)}">打开 PDF</button>`
+          : `<button class="text-button" type="button" data-open-photo="${escapeAttr(item.photo)}" data-caption="${escapeAttr(item.name || "文件照片")}">看文件照片</button>`
         : "";
       return `
-        <article class="item-card" data-item-kind="storage" data-item-id="${escapeAttr(item.id)}">
+        <article class="item-card storage-file-card" data-item-kind="storage" data-item-id="${escapeAttr(item.id)}">
           <div class="card-top">
-            <h4>${escapeHtml(item.name)}</h4>
-            <span class="tag">${escapeHtml(item.type || "物品")}</span>
+            <h4><span aria-hidden="true">${fileTypeIcon(normalizedType)}</span>${escapeHtml(item.name)}</h4>
+            <span class="tag">${escapeHtml(normalizedType)}</span>
           </div>
           ${compactMeta([
-            item.room ? `房间 ${item.room}` : "未填房间",
-            item.spot ? `位置 ${item.spot}` : "未填位置",
-            item.owner ? `负责人 ${item.owner}` : ""
+            item.spot ? `位置 ${item.spot}` : "",
+            item.fileName ? `附件 ${item.fileName}` : ""
           ])}
           <div class="card-actions">
-            ${photoBlock}
+            ${attachmentBlock}
             <button class="text-button" type="button" data-edit-kind="storage" data-id="${escapeAttr(item.id)}">编辑</button>
             <button class="text-button danger" type="button" data-delete-kind="storage" data-id="${escapeAttr(item.id)}">删除</button>
           </div>
@@ -958,6 +1958,17 @@ function renderStorage() {
       `;
     })
     .join("");
+}
+
+function renderFileCategories(list = state.storage) {
+  const overlay = $("#fileCategoryOverlay");
+  if (!overlay) return;
+  overlay.innerHTML = FILE_TYPES.map((type) => `
+    <button type="button" data-file-category="${escapeAttr(type.value)}">
+      <span aria-hidden="true">${type.icon}</span>
+      <b>${escapeHtml(type.value)}</b>
+    </button>
+  `).join("");
 }
 
 function renderRestock() {
@@ -1028,6 +2039,17 @@ function toggleFurnitureDoor(button) {
   if (button.dataset.furniture === "clock") {
     button.setAttribute("aria-label", isOpen ? "关闭提醒时钟" : "打开提醒时钟");
   }
+  const tabByFurniture = {
+    fridge: "fridge",
+    closet: "clothes",
+    clock: "dates",
+    cabinet: "storage",
+    pantry: "restock",
+  };
+  const tabName = tabByFurniture[button.dataset.furniture];
+  if (tabName) {
+    window.setTimeout(() => focusMainVisual(tabName), 160);
+  }
 }
 
 function renderEmpty(container, title) {
@@ -1062,6 +2084,19 @@ function openStoredItem(kind, id) {
 function openPhotoPicker(button) {
   const input = $(`#${button.dataset.photoTrigger}`);
   if (!input) return;
+
+  if (input === elements.storagePhotoInput) {
+    if (button.dataset.photoMode === "camera") {
+      input.accept = "image/*";
+      input.setAttribute("capture", "environment");
+    } else {
+      input.accept = "image/*,application/pdf";
+      input.removeAttribute("capture");
+    }
+    input.value = "";
+    input.click();
+    return;
+  }
 
   if (button.dataset.photoMode === "camera") {
     input.setAttribute("capture", "environment");
@@ -1205,10 +2240,15 @@ function editItem(kind, id) {
     showPreview(elements.clothesPhotoPreview, item.photo);
     setSubmitText(elements.clothesForm, "更新衣服");
     setActiveTab("clothes");
+    ensureClosetOpen();
     formToShow = elements.clothesForm;
   }
 
   if (kind === "dates") {
+    if ($("#dateModal")) {
+      openDateModal(item);
+      return;
+    }
     fillForm(elements.dateForm, item);
     setSubmitText(elements.dateForm, "更新日期");
     setActiveTab("dates");
@@ -1218,8 +2258,10 @@ function editItem(kind, id) {
   if (kind === "storage") {
     fillForm(elements.storageForm, item);
     showPreview(elements.storagePhotoPreview, item.photo);
-    setSubmitText(elements.storageForm, "更新位置");
+    setSubmitText(elements.storageForm, "更新文件");
     setActiveTab("storage");
+    $("#tab-storage")?.classList.add("file-editing");
+    ensureFileOpen();
     formToShow = elements.storageForm;
   }
 
@@ -1283,7 +2325,8 @@ function resetStorageForm() {
   elements.storageForm.reset();
   elements.storageForm.elements.id.value = "";
   showPreview(elements.storagePhotoPreview, "");
-  setSubmitText(elements.storageForm, "保存位置");
+  setSubmitText(elements.storageForm, "保存文件");
+  $("#tab-storage")?.classList.remove("file-editing");
 }
 
 function resetRestockForm() {
@@ -1312,13 +2355,50 @@ function bindPhotoPreview(input, preview) {
   });
 }
 
+function bindClothesAutoType() {
+  const form = elements.clothesForm;
+  if (!form) return;
+  const nameField = form.elements.name;
+  const typeField = form.elements.type;
+  const noteField = form.elements.note;
+  const applyDetectedType = () => {
+    if (!typeField || typeField.value) return;
+    const fileName = elements.clothesPhotoInput.files[0]?.name || "";
+    const detected = detectClothesType(`${nameField?.value || ""} ${noteField?.value || ""} ${fileName}`);
+    if (detected) typeField.value = detected;
+  };
+
+  nameField?.addEventListener("input", applyDetectedType);
+  noteField?.addEventListener("input", applyDetectedType);
+  elements.clothesPhotoInput?.addEventListener("change", () => {
+    applyDetectedType();
+    if (elements.clothesPhotoInput.files[0]) {
+      ensureClosetOpen();
+      window.setTimeout(() => {
+        elements.clothesForm.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 220);
+    }
+  });
+}
+
 function showPreview(preview, dataUrl) {
   if (!dataUrl) {
     preview.classList.add("hidden");
     preview.style.backgroundImage = "";
+    preview.textContent = "";
+    preview.classList.remove("pdf-preview");
+    return;
+  }
+  if (/^data:application\/pdf/i.test(dataUrl)) {
+    preview.classList.remove("hidden");
+    preview.classList.add("pdf-preview");
+    preview.style.backgroundImage = "";
+    preview.textContent = "PDF 文件已选择";
     return;
   }
   preview.classList.remove("hidden");
+  preview.classList.remove("pdf-preview");
+  preview.textContent = "";
   preview.style.backgroundImage = `url("${dataUrl}")`;
 }
 
@@ -1365,6 +2445,19 @@ function openImageDialog(src, caption) {
   } else {
     elements.imageDialog.setAttribute("open", "");
   }
+}
+
+function openFileAttachment(src, fileName = "赛博小管家文件") {
+  if (!src) return;
+  const link = document.createElement("a");
+  link.href = src;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.download = fileName || "赛博小管家文件";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  showFridgeToast("文件已打开，如未弹出请查看浏览器下载");
 }
 
 function closeImageDialog() {
@@ -1424,12 +2517,13 @@ function checkBrowserNotifications(showEmptyTip) {
 
   const todayKey = toDateInputValue(new Date());
   const notified = loadNotified();
-  const dueTomorrow = state.dates.filter((item) => daysUntil(item.date) === 1);
+  const dueToday = state.dates.filter((item) => daysUntil(item.date) === Number(item.remindDays || 1));
 
-  dueTomorrow.forEach((item) => {
+  dueToday.forEach((item) => {
     const key = `${todayKey}-${item.id}-${item.date}`;
     if (notified[key]) return;
-    new Notification(`明天有重要日期：${item.name}`, {
+    const remindDays = Number(item.remindDays || 1);
+    new Notification(`${remindDays} 天后有重要日期：${item.name}`, {
       body: item.note || `${item.date}，请提前准备。`,
     });
     notified[key] = true;
@@ -1437,8 +2531,8 @@ function checkBrowserNotifications(showEmptyTip) {
 
   localStorage.setItem(NOTIFY_KEY, JSON.stringify(notified));
 
-  if (showEmptyTip && !dueTomorrow.length) {
-    alert("当前没有明天到期的重要日期。");
+  if (showEmptyTip && !dueToday.length) {
+    alert("当前没有需要现在提醒的重要日期。");
   }
 }
 
@@ -1464,7 +2558,14 @@ function exportCalendarFile() {
       const endDate = parseLocalDate(item.date);
       endDate.setDate(endDate.getDate() + 1);
       const end = toDateInputValue(endDate).replaceAll("-", "");
-      const description = [`类型：${item.type || "其他"}`, item.note ? `备注：${item.note}` : ""].filter(Boolean).join("\\n");
+      const remindDays = Number(item.remindDays || 1);
+      const description = [
+        `类型：${normalizeDateType(item.type)}`,
+        `提醒：提前 ${remindDays} 天`,
+        item.note ? `备注：${item.note}` : "",
+      ]
+        .filter(Boolean)
+        .join("\\n");
 
       return [
         "BEGIN:VEVENT",
@@ -1475,9 +2576,9 @@ function exportCalendarFile() {
         `SUMMARY:${icsEscape(item.name)}`,
         `DESCRIPTION:${icsEscape(description)}`,
         "BEGIN:VALARM",
-        "TRIGGER;RELATED=START:-P1D",
+        `TRIGGER;RELATED=START:-P${remindDays}D`,
         "ACTION:DISPLAY",
-        `DESCRIPTION:${icsEscape(`明天：${item.name}`)}`,
+        `DESCRIPTION:${icsEscape(`${remindDays} 天后：${item.name}`)}`,
         "END:VALARM",
         "END:VEVENT",
       ].join("\r\n");
@@ -1510,7 +2611,7 @@ function openCalendarImport(content) {
 
   window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   window.setTimeout(() => {
-    alert("已生成手机日历文件。iPhone 请用 Safari 打开并选择加入日历；每个日期都已设置提前一天提醒。若当前浏览器提示文件打开失败，请点右上角选择用 Safari 打开。");
+    alert("已生成手机日历文件。iPhone 请用 Safari 打开并选择加入日历；每个日期会按你设置的提前天数提醒。若当前浏览器提示文件打开失败，请点右上角选择用 Safari 打开。");
   }, 300);
 }
 
