@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyber-homekeeper-v42";
+const CACHE_NAME = "cyber-homekeeper-v50";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,7 +7,6 @@ const APP_SHELL = [
   "./fridge-final.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./qisi-cutout.png",
   "./assets/apple-touch-icon.png",
   "./assets/icon-180.png",
   "./assets/icon-192.png",

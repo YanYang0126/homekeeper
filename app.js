@@ -63,7 +63,6 @@ init();
 function init() {
   document.body.dataset.activeTab = $(".tab-button.active")?.dataset.tab || "fridge";
   registerServiceWorker();
-  bindImageFallbacks();
   bindTabs();
   bindForms();
   bindButtons();
@@ -78,6 +77,7 @@ function init() {
   useRealDateImages();
   useRealFileImages();
   ensureFileExperience();
+  ensureRestockExperience();
   updateReminderButton();
   render();
   checkBrowserNotifications(false);
@@ -163,6 +163,7 @@ function ensureFridgeExperience() {
       `
     );
   }
+
 }
 
 function useRealFridgeImages() {
@@ -191,6 +192,17 @@ function useRealFridgeImages() {
       <button class="fridge-add-button" type="button" data-fridge-add>添加食材</button>
       <button class="fridge-organize-button" type="button" data-fridge-organize>整理冰箱</button>
     `;
+  }
+
+  const generatedFridgeAddButton = actionBar?.querySelector("[data-fridge-add]");
+  const generatedFridgeOrganizeButton = actionBar?.querySelector("[data-fridge-organize]");
+  if (generatedFridgeAddButton) {
+    generatedFridgeAddButton.textContent = "添加";
+    generatedFridgeAddButton.setAttribute("aria-label", "添加食材");
+  }
+  if (generatedFridgeOrganizeButton) {
+    generatedFridgeOrganizeButton.textContent = "整理";
+    generatedFridgeOrganizeButton.setAttribute("aria-label", "整理冰箱");
   }
 
   $$(".fridge-image-hotspots").forEach((node) => node.remove());
@@ -222,6 +234,21 @@ function useRealFridgeImages() {
         <div class="fridge-today-list" id="fridgeTodayList"></div>
       </section>
     `;
+  }
+
+  if (dashboard && !$(".fridge-tip-card", dashboard)) {
+    dashboard.insertAdjacentHTML(
+      "beforeend",
+      `
+        <section class="fridge-widget fridge-tip-card">
+          <div class="fridge-widget-title">
+            <button class="fridge-panel-title" type="button" data-fridge-tip>冰箱小贴士</button>
+            <button class="fridge-icon-button" type="button" data-fridge-tip aria-label="查看冰箱小贴士">爪</button>
+          </div>
+          <p id="fridgeTipText">添加食材后，这里会给出整理建议。</p>
+        </section>
+      `
+    );
   }
 }
 
@@ -309,6 +336,19 @@ function ensureClosetExperience() {
       `
     );
   }
+
+  const closetVisual = $(".scene-visual", scene);
+  if (closetVisual && !$(".closet-action-bar", closetVisual)) {
+    closetVisual.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div class="closet-action-bar" aria-label="衣橱快捷操作">
+          <button class="closet-add-button" type="button" data-closet-form>添加衣服</button>
+          <button class="closet-manage-button" type="button" data-closet-manage>管理衣服</button>
+        </div>
+      `
+    );
+  }
 }
 
 function ensureFileExperience() {
@@ -375,7 +415,7 @@ function ensureFileExperience() {
       "beforeend",
       `
         <div class="file-action-bar">
-          <button class="file-add-button" type="button" data-file-add>＋ 添加文件</button>
+          <button class="file-add-button" type="button" data-file-add>添加文件</button>
           <button class="file-organize-button" type="button" data-file-organize>整理文件</button>
         </div>
       `
@@ -418,6 +458,19 @@ function ensureDatesExperience() {
     );
   }
 
+  const dateVisual = $(".scene-visual", scene);
+  if (dateVisual && !$(".date-action-bar", dateVisual)) {
+    dateVisual.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div class="date-action-bar" aria-label="日期快捷操作">
+          <button class="date-add-button" type="button" data-date-add>添加日期</button>
+          <button class="date-manage-button" type="button" data-date-manage>管理日期</button>
+        </div>
+      `
+    );
+  }
+
   if (!$(".dates-workbench", section)) {
     scene.insertAdjacentHTML(
       "afterend",
@@ -427,11 +480,11 @@ function ensureDatesExperience() {
           <div class="date-manager-grid">
             <section class="date-list-panel">
               <div class="date-panel-head">
-                <div>
-                  <p class="eyebrow">最近提醒</p>
-                  <h3>倒计时清单</h3>
-                </div>
-                <button class="date-add-mini" type="button" data-date-add>＋ 添加</button>
+              <div>
+                <p class="eyebrow">最近提醒</p>
+                <h3>倒计时清单</h3>
+              </div>
+                <button class="date-add-mini" type="button" data-date-add>添加日期</button>
               </div>
               <div class="date-list-modern" id="dateModernList"></div>
             </section>
@@ -449,7 +502,7 @@ function ensureDatesExperience() {
             </section>
           </div>
           <div class="date-bottom-actions">
-            <button class="date-primary-action" type="button" data-date-add>＋ 添加重要日期</button>
+            <button class="date-primary-action" type="button" data-date-add>添加重要日期</button>
           </div>
         </div>
       `
@@ -508,6 +561,19 @@ function ensureDatesExperience() {
   }
 }
 
+function ensureRestockExperience() {
+  const section = $("#tab-restock");
+  const scene = $(".pantry-scene", section);
+  const actionBar = $(".restock-action-bar", section);
+  const summary = $(".restock-summary-card", section);
+  if (scene && actionBar && actionBar.parentElement !== scene) {
+    scene.appendChild(actionBar);
+  }
+  if (scene && summary && summary.parentElement !== scene) {
+    scene.appendChild(summary);
+  }
+}
+
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
   if (!["http:", "https:"].includes(window.location.protocol)) return;
@@ -520,28 +586,12 @@ function registerServiceWorker() {
     if (event.data?.type === "sw-updated") {
       const refresh = document.createElement("div");
       refresh.style.cssText =
-        "position:fixed;bottom:80px;left:50%;z-index:999;transform:translateX(-50%);padding:10px 20px;border-radius:8px;background:#8b5cf6;color:#fff;font-weight:700;box-shadow:0 12px 30px rgba(124,58,237,0.3);cursor:pointer;";
+        "position:fixed;bottom:112px;left:50%;z-index:999;transform:translateX(-50%);max-width:calc(100vw - 96px);padding:8px 14px;border-radius:999px;background:rgba(139,92,246,0.92);color:#fff;font-size:13px;font-weight:800;line-height:1.2;text-align:center;white-space:nowrap;box-shadow:0 10px 24px rgba(124,58,237,0.24);cursor:pointer;";
       refresh.textContent = "有新版本，点击刷新";
       refresh.addEventListener("click", () => window.location.reload());
       document.body.appendChild(refresh);
       window.setTimeout(() => refresh.remove(), 15000);
     }
-  });
-}
-
-function bindImageFallbacks() {
-  $$(".qisi-corner").forEach((image) => {
-    image.addEventListener("error", () => {
-      const fallbackSrc = image.dataset.fallbackSrc;
-      if (fallbackSrc && image.src.indexOf(fallbackSrc) === -1) {
-        image.src = fallbackSrc;
-        image.dataset.fallbackSrc = "";
-        return;
-      }
-      image.classList.add("image-missing");
-      const fallback = $(".qisi-fallback");
-      if (fallback) fallback.classList.add("show");
-    });
   });
 }
 
@@ -584,13 +634,14 @@ function bindButtons() {
     const storedItemButton = event.target.closest("[data-open-kind]");
     const photoTrigger = event.target.closest("[data-photo-trigger]");
     const closetFormButton = event.target.closest("[data-closet-form]");
+    const closetManageButton = event.target.closest("[data-closet-manage]");
     const furnitureButton = event.target.closest("[data-furniture]");
     const restockPreset = event.target.closest("[data-restock-preset]");
     const restockAddButton = event.target.closest("[data-restock-add]");
     const restockOrganizeButton = event.target.closest("[data-restock-organize]");
     const fridgeAddButton = event.target.closest("[data-fridge-add]");
     const fridgeOrganizeButton = event.target.closest("[data-fridge-organize]");
-    const fridgePanelButton = event.target.closest("[data-fridge-overview], [data-fridge-today]");
+    const fridgePanelButton = event.target.closest("[data-fridge-overview], [data-fridge-today], [data-fridge-tip]");
     const outfitPickButton = event.target.closest("[data-outfit-pick]");
     const outfitRemoveButton = event.target.closest("[data-outfit-remove]");
     const outfitSaveButton = event.target.closest("[data-outfit-save]");
@@ -598,6 +649,7 @@ function bindButtons() {
     const outfitRandomButton = event.target.closest("[data-outfit-random]");
     const outfitHistoryButton = event.target.closest("[data-open-outfit]");
     const dateAddButton = event.target.closest("[data-date-add]");
+    const dateManageButton = event.target.closest("[data-date-manage]");
     const dateCloseButton = event.target.closest("[data-date-close]");
     const dateFilterButton = event.target.closest("[data-date-filter]");
     const datePrevButton = event.target.closest("[data-date-prev]");
@@ -631,6 +683,8 @@ function bindButtons() {
     if (fridgePanelButton) {
       if (fridgePanelButton.hasAttribute("data-fridge-today")) {
         openFridgePanel("today");
+      } else if (fridgePanelButton.hasAttribute("data-fridge-tip")) {
+        openFridgePanel("tip");
       } else {
         openFridgePanel("overview");
       }
@@ -639,6 +693,11 @@ function bindButtons() {
 
     if (closetFormButton) {
       focusClothesForm();
+      return;
+    }
+
+    if (closetManageButton) {
+      focusClothesManager();
       return;
     }
 
@@ -674,6 +733,11 @@ function bindButtons() {
 
     if (dateAddButton) {
       openDateModal();
+      return;
+    }
+
+    if (dateManageButton) {
+      focusDateManager();
       return;
     }
 
@@ -722,6 +786,10 @@ function bindButtons() {
 
     if (fileOpenButton) {
       openFileAttachment(fileOpenButton.dataset.openFile, fileOpenButton.dataset.fileName || "赛博小管家文件");
+      return;
+    }
+
+    if (furnitureButton?.dataset.furniture === "fridge" && handleFridgeImageHotspot(event, furnitureButton)) {
       return;
     }
 
@@ -877,8 +945,16 @@ function setActiveTab(tabName, shouldScroll = false) {
 function focusMainVisual(tabName) {
   const activeSection = $(`#tab-${tabName}`);
   if (!activeSection) return;
-  const target = $(".scene-visual", activeSection) || activeSection;
-  target.scrollIntoView({ behavior: "auto", block: "start", inline: "center" });
+  const isMobile = window.matchMedia("(max-width: 760px)").matches;
+  const target = isMobile
+    ? $(".scene-visual", activeSection) || $(".scene-card", activeSection) || activeSection
+    : $(".scene-card", activeSection) || $(".scene-visual", activeSection) || activeSection;
+  requestAnimationFrame(() => {
+    const offset = isMobile ? 0 : 18;
+    const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
+    window.scrollTo(0, top);
+    window.setTimeout(() => window.scrollTo(0, top), 60);
+  });
 }
 
 function closeSceneFurniture(tabName) {
@@ -943,6 +1019,14 @@ function ensureFileOpen() {
   return cabinetButton;
 }
 
+function ensureDateOpen() {
+  const dateButton = $('[data-furniture="clock"]');
+  if (dateButton && !dateButton.classList.contains("door-open")) {
+    toggleFurnitureDoor(dateButton);
+  }
+  return dateButton;
+}
+
 function ensurePantryOpen() {
   const pantryButton = $('[data-furniture="pantry"]');
   if (pantryButton && !pantryButton.classList.contains("door-open")) {
@@ -957,6 +1041,20 @@ function focusClothesForm() {
   const nameField = elements.clothesForm.elements.name;
   elements.clothesForm.scrollIntoView({ behavior: "smooth", block: "center" });
   window.setTimeout(() => nameField?.focus(), 260);
+}
+
+function focusClothesManager() {
+  setActiveTab("clothes");
+  ensureClosetOpen();
+  const target = $("#tab-clothes .closet-dressing-room") || $("#clothesList")?.closest(".work-grid") || elements.clothesForm;
+  target?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function focusDateManager() {
+  setActiveTab("dates");
+  ensureDateOpen();
+  const target = $("#tab-dates .dates-workbench") || $("#dateList")?.closest(".work-grid") || elements.dateForm;
+  target?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function focusStorageForm(type = "") {
@@ -987,11 +1085,13 @@ function openFridgePanel(panel) {
   const panelMap = {
     overview: [".fridge-overview-card", "我的冰箱已打开"],
     today: [".fridge-today-list", "今日提醒已打开"],
+    tip: [".fridge-tip-card", "冰箱小贴士已打开"],
   };
   const [selector, fallbackMessage] = panelMap[panel] || panelMap.overview;
   const message = {
     overview: "\u6211\u7684\u51b0\u7bb1\u5df2\u6253\u5f00",
     today: "\u4eca\u65e5\u63d0\u9192\u5df2\u6253\u5f00",
+    tip: "\u51b0\u7bb1\u5c0f\u8d34\u58eb\u5df2\u6253\u5f00",
   }[panel] || fallbackMessage;
   const target = $(selector);
   if (target) {
@@ -1001,6 +1101,38 @@ function openFridgePanel(panel) {
     window.setTimeout(() => target.classList.remove("fridge-panel-flash"), 1400);
   }
   showFridgeToast(message);
+}
+
+function handleFridgeImageHotspot(event, button) {
+  if (!button.classList.contains("door-open")) return false;
+  const rect = button.getBoundingClientRect();
+  if (!rect.width || !rect.height) return false;
+
+  const x = ((event.clientX - rect.left) / rect.width) * 100;
+  const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+  if (x >= 67 && y >= 10 && y <= 35) {
+    openFridgePanel("overview");
+    return true;
+  }
+  if (x >= 67 && y > 35 && y <= 63) {
+    openFridgePanel("today");
+    return true;
+  }
+  if (x >= 67 && y > 63 && y <= 84) {
+    openFridgePanel("tip");
+    return true;
+  }
+  if (y >= 82 && x <= 50) {
+    focusFridgeForm();
+    return true;
+  }
+  if (y >= 82 && x > 50) {
+    organizeFridge();
+    return true;
+  }
+
+  return false;
 }
 
 function organizeFridge() {
@@ -1288,7 +1420,7 @@ function renderFridgeDashboard(items) {
         .map((item) => {
           const status = getFridgeStatus(item);
           return `
-            <span class="fridge-food-card ${fridgeFoodTone(item.name)}" role="button" tabindex="0" data-edit-kind="fridge" data-id="${escapeAttr(item.id)}">
+            <span class="fridge-food-card ${fridgeFoodTone(item.name)} fridge-status-${escapeAttr(status.level)}" role="button" tabindex="0" data-edit-kind="fridge" data-id="${escapeAttr(item.id)}">
               <i aria-hidden="true">${fridgeFoodIcon(item.name)}</i>
               <b>${escapeHtml(item.name || "未命名")}</b>
               <em>${escapeHtml(status.text)}</em>
@@ -1317,6 +1449,24 @@ function renderFridgeDashboard(items) {
           `)
           .join("")
       : `<div class="fridge-reminder-empty">今天没有需要特别处理的食材。</div>`;
+  }
+
+  const tipText = $("#fridgeTipText");
+  if (tipText) {
+    const firstExpired = expired[0];
+    const firstSoon = soon
+      .slice()
+      .sort((a, b) => a.diff - b.diff)[0];
+
+    if (firstExpired) {
+      tipText.textContent = `${firstExpired.item.name || "有食材"}已经过期，建议先清理后再补新。`;
+    } else if (firstSoon) {
+      tipText.textContent = `${firstSoon.item.name || "有食材"}快到期了，可以放到最显眼的位置先吃掉。`;
+    } else if (items.length) {
+      tipText.textContent = "冰箱状态不错。奶制品和熟食建议放上层，蔬果分区收纳更清爽。";
+    } else {
+      tipText.textContent = "添加食材后，这里会自动给出保鲜和整理建议。";
+    }
   }
 }
 

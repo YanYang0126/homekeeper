@@ -29,24 +29,6 @@
     <main class="app-main">
       <section class="hero-panel home-hero-card" aria-label="赛博小管家欢迎区">
         <img class="home-hero-image" src="assets/ui/home-hero-house.jpg" alt="起司大王的紫色小屋" />
-        <span class="music-note note-tl" aria-hidden="true">♩</span>
-        <span class="music-note note-tr" aria-hidden="true">♪</span>
-        <span class="music-note note-bl" aria-hidden="true">♫</span>
-        <span class="music-note note-br" aria-hidden="true">♬</span>
-        <div class="hero-copy">
-          <h2>让起司大王陪您一起整理吧</h2>
-        </div>
-        <div class="hero-art">
-          <img
-            class="qisi-corner"
-            src="qisi-cutout.png"
-            data-fallback-src="assets/qisi-cutout.png"
-            alt="起司趴在页面右上角"
-            onerror="if (this.dataset.fallbackSrc) { this.src = this.dataset.fallbackSrc; this.dataset.fallbackSrc = ''; } else { this.classList.add('image-missing'); var fallback = document.querySelector('.qisi-fallback'); if (fallback) fallback.classList.add('show'); }"
-          />
-          <div class="qisi-fallback" aria-hidden="true">起司</div>
-          <div class="qisi-label">起司大王</div>
-        </div>
       </section>
 
       <section class="alert-panel hidden" id="alertPanel" aria-live="polite"></section>
